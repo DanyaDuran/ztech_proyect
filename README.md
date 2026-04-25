@@ -83,7 +83,6 @@ Esto es en la terminal de VS code, obviamente dentro de nuestro proyecto usar:
 git push -u origin feature/sprint-0-tuNombre
 ```
 
-
 9. Crear Pull Request (la opcion esta al lado de Issues)
 
 Cada integrante debe crear un Pull Request en GitHub:
@@ -105,6 +104,8 @@ REGLAS A SEGUIUR:
 Estructura Temporal del proyecto basada en documento (sujeta  a cambios,  ya  que debemos esperar a que nos
 entreguen una mayor profundidad y contexto del proyecto y en requerimientos)
 
+```txt
+
 lib/
 ├── main.dart
 ├── app/
@@ -118,8 +119,8 @@ lib/
     ├── dashboard/
     ├── inventory/
     └── location/
-
-Cada feature contiene:
+```
+Cada feature contiene como solicita el documento:
 
 data/
 domain/
