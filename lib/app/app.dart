@@ -25,12 +25,11 @@ class ZTechApp extends StatelessWidget {
               ),
               const SizedBox(height: 20), // Espacio en blanco para separar
               
-              // 4. Implementamos tu botón personalizado
+            
               CustomActionButton(
                 text: 'Probar Botón',
                 icon: Icons.check_circle,
                 onPressed: () {
-                  // Esta acción imprime un mensaje en la consola de depuración
                   debugPrint('¡El botón funciona correctamente!');
                 },
               ),
