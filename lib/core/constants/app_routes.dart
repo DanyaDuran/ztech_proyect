@@ -1,3 +1,4 @@
+// Contiene los identificadores únicos para las rutas de navegación
 class AppRoutes {
   static const login = '/login';
   static const dashboard = '/dashboard';
