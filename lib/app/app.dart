@@ -7,7 +7,7 @@ class ZTechApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ZTech Inventory',
+      title: 'ZTech Inventario',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const Scaffold(body: Center(child: Text('ZTech Inventory App'))),
