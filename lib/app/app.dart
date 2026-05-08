@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
+import '../features/auth/presentation/screens/login_screen.dart';
 
-class ZTechApp extends StatelessWidget {
-  const ZTechApp({super.key});
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ZTech Inventory',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      home: const Scaffold(body: Center(child: Text('ZTech Inventory App'))),
+      title: 'Ztech',
+      home: const LoginScreen(),
     );
   }
 }
