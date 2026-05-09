@@ -27,19 +27,52 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (!mockUsers.containsKey(email)) {
+    final user = mockUsers.where((user) => user.correo == email).firstOrNull;
+
+    if (user == null) {
       _showMessage('El correo ingresado no existe');
       return;
     }
 
-    if (mockUsers[email] != password) {
+    if (!user.activo) {
+      _showMessage('La cuenta se encuentra desactivada');
+      return;
+    }
+
+    if (user.password != password) {
       _showMessage('La contraseña es incorrecta');
       return;
     }
 
-    _showMessage('Inicio de sesión exitoso');
+    _showMessage('Inicio de sesión con éxito');
 
-    Navigator.pushReplacementNamed(context, '/dashboard');
+    String route;
+
+    switch (user.rol) {
+      case 'admin':
+        route = '/dashboard';
+        break;
+
+      case 'bodega':
+        route = '/bodega';
+        break;
+
+      case 'tecnico':
+        route = '/tecnico';
+        break;
+
+      case 'ventas':
+        route = '/ventas';
+        break;
+
+      case 'superusuario':
+        route = '/admin';
+        break;
+
+      default:
+        route = '/dashboard';
+    }
+    Navigator.pushReplacementNamed(context, route);
   }
 
   void _showMessage(String message) {
