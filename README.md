@@ -4,6 +4,28 @@ Aplicación móvil desarrollada en Flutter para la gestión de inventario de not
 
 ## Getting Started
 
+Por el tema de integrar rutas y login estos son los usuarios que deben usar
+para comprobar si sus codigos agregados en base a las sub tareas que les asignaron se ven reeflejados cuando hagan el run: 
+
+## Usuarios Mock de Prueba
+
+| Rol--------------|--Correo -------|-------Contraseña-|
+|------------------|----------------|------------------|
+| Administrador    | admin@ztech.cl | 12345678         |
+| Superusuario     | super@ztech.cl | 12345678         |
+| Bodega           | bodega@ztech.cl| 12345678         |
+| Técnico          |tecnico@ztech.cl| 12345678         |
+| Ventas           | ventas@ztech.cl| 12345678         |
+
+ests son usuarios temporales utilizados para pruebas de autenticación y navegación durante el desarrollo del Sprint 1. Cuando se desarrolle el Backend verdadero, ya no será necesario el archivo que los contiene. 
+
+
+
+
+
+
+
+
 1. Clonar el repositorio:
 
 ```bash
