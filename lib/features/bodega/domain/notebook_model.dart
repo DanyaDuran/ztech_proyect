@@ -8,7 +8,7 @@ class NotebookModel {
   final String ram;
   final String almacenamiento;
   final String tarjetaGrafica;
-  final String estado;
+  String estado;
   final String seccion;
   final String estante;
   final String nivel;

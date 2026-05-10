@@ -98,6 +98,15 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
   }
 
   void toggleSelection(NotebookModel notebook) {
+    if (notebook.estado != 'Disponible') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Solo se pueden seleccionar notebooks disponibles'),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       if (selectedNotebooks.contains(notebook)) {
         selectedNotebooks.remove(notebook);
@@ -121,9 +130,11 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
 
     setState(() {
       for (var notebook in selectedNotebooks) {
-        filteredNotebooks.remove(notebook);
-        notebooks.remove(notebook);
+        notebook.estado = 'Vendido';
       }
+      filteredNotebooks = notebooks
+          .where((n) => n.estado == 'Disponible')
+          .toList();
       selectedNotebooks.clear();
     });
 
@@ -206,13 +217,17 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.12),
+                    color: notebook.estado == 'Vendido'
+                        ? Colors.red.withOpacity(0.12)
+                        : Colors.green.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    'Disponible',
+                  child: Text(
+                    notebook.estado,
                     style: TextStyle(
-                      color: Colors.green,
+                      color: notebook.estado == 'Vendido'
+                          ? Colors.red
+                          : Colors.green,
                       fontWeight: FontWeight.w600,
                       fontSize: 11,
                     ),
@@ -233,7 +248,10 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    onPressed: () => toggleSelection(notebook),
+                    onPressed: notebook.estado == 'Disponible'
+                        ? () => toggleSelection(notebook)
+                        : null,
+
                     child: Text(
                       isSelected ? 'Quitar' : 'Seleccionar',
                       style: const TextStyle(fontSize: 11),
