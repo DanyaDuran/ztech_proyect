@@ -1,6 +1,6 @@
 import '../domain/notebook_model.dart';
 
-final List<NotebookModel> mockNotebooks = [
+List<NotebookModel> mockNotebooks = [
   NotebookModel(
     codigo: 'NB-001',
     marca: 'Lenovo',
