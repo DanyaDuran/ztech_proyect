@@ -90,7 +90,7 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
       ),
 
       builder: (context) {
-        return Padding(
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -404,56 +404,56 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
             const SizedBox(height: 20),
 
             // Cantidades por estado
-            Row(
-              children: [
-                Expanded(
-                  child: buildStatusCard(
-                    'Disp.',
-                    getCountByStatus('Disponible'),
-                    getStatusColor('Disponible'),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 90,
+                    child: buildStatusCard(
+                      'Disp.',
+                      getCountByStatus('Disponible'),
+                      getStatusColor('Disponible'),
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: buildStatusCard(
-                    'Repar.',
-                    getCountByStatus('En reparación'),
-                    getStatusColor('En reparación'),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 90,
+                    child: buildStatusCard(
+                      'Repar.',
+                      getCountByStatus('En reparación'),
+                      getStatusColor('En reparación'),
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: buildStatusCard(
-                    'Vend.',
-                    getCountByStatus('Vendido'),
-                    getStatusColor('Vendido'),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 90,
+                    child: buildStatusCard(
+                      'Vend.',
+                      getCountByStatus('Vendido'),
+                      getStatusColor('Vendido'),
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: buildStatusCard(
-                    'Merma',
-                    getCountByStatus('Merma'),
-                    getStatusColor('Merma'),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 90,
+                    child: buildStatusCard(
+                      'Merma',
+                      getCountByStatus('Merma'),
+                      getStatusColor('Merma'),
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: buildStatusCard(
-                    'Rev.',
-                    getCountByStatus('Pendiente de revisión'),
-                    getStatusColor('Pendiente de revisión'),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 90,
+                    child: buildStatusCard(
+                      'Rev.',
+                      getCountByStatus('Pendiente de revisión'),
+                      getStatusColor('Pendiente de revisión'),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
             const SizedBox(height: 20),
