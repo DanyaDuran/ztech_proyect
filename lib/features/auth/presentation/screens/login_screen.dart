@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1E2D),
+      backgroundColor: const Color(0xFF001233),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -114,26 +114,17 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF16354A),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Image.asset(
-                        'assets/images/logo_ztech.png',
-                        fit: BoxFit.contain,
-                      ),
-                    ),
+                  Image.asset(
+                    'assets/images/logo_ztech.png',
+                    width: 95,
+                    height: 95,
+                    fit: BoxFit.contain,
                   ),
 
                   const SizedBox(height: 22),
 
                   const Text(
-                    'ZTech',
+                    'Ztech',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -144,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 8),
 
                   const Text(
-                    'Gestión inteligente de notebooks',
+                    'Gestión eficiente de notebooks',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
@@ -248,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 58,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF16354A),
+                        backgroundColor: const Color(0xFF16C7D8),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(

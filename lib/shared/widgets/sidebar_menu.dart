@@ -8,24 +8,16 @@ class SidebarMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color(0xFF0F2A3D),
+      backgroundColor: const Color(0xFF001233),
       child: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 24),
 
-            Container(
-              width: 70,
+            Image.asset(
+              'assets/images/logo_ztech.png',
               height: 70,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Image.asset(
-                'assets/images/logo_ztech.png',
-                fit: BoxFit.contain,
-              ),
+              fit: BoxFit.contain,
             ),
 
             const SizedBox(height: 4),

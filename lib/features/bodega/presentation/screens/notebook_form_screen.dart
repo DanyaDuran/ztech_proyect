@@ -240,7 +240,6 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                       [
                         'Disponible',
                         'En reparación',
-                        'Vendido',
                         'Merma',
                         'Pendiente de revisión',
                       ].map((status) {
