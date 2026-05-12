@@ -25,7 +25,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
   final estanteController = TextEditingController();
   final nivelController = TextEditingController();
 
-  String estado = 'Disponible';
+  String estado = 'Pendiente de revisión';
 
   InputDecoration buildInputDecoration(String label, IconData icon) {
     return InputDecoration(
@@ -236,31 +236,25 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                     Icons.info_outline,
                   ),
 
-                  items:
-                      [
-                        'Disponible',
-                        'En reparación',
-                        'Merma',
-                        'Pendiente de revisión',
-                      ].map((status) {
-                        return DropdownMenuItem(
-                          value: status,
+                  items: ['Merma', 'Pendiente de revisión'].map((status) {
+                    return DropdownMenuItem(
+                      value: status,
 
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                size: 12,
-                                color: getStatusColor(status),
-                              ),
-
-                              const SizedBox(width: 10),
-
-                              Text(status),
-                            ],
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.circle,
+                            size: 12,
+                            color: getStatusColor(status),
                           ),
-                        );
-                      }).toList(),
+
+                          const SizedBox(width: 10),
+
+                          Text(status),
+                        ],
+                      ),
+                    );
+                  }).toList(),
 
                   onChanged: (value) {
                     setState(() {
