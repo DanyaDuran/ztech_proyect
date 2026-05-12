@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'routes.dart';
+import 'router/routes.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/dashboard/presentation/screens/admin_dashboard_screen.dart';
 import '../features/bodega/presentation/screens/bodega_home_screen.dart';
