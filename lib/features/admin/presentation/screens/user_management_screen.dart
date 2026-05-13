@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/widgets/sidebar_menu.dart';
+import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
 
 class UserManagementScreen extends StatelessWidget {
   const UserManagementScreen({super.key});
