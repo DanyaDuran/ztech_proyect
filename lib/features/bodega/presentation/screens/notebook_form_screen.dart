@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:ztech_flutter__app/shared/widgets/input_decorations.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/notebook_utils.dart';
+import '../../../../shared/widgets/custom_text_field.dart';
 import '../../domain/notebook_model.dart';
 
 class NotebookFormScreen extends StatefulWidget {
@@ -27,58 +30,6 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
   String estado = 'Pendiente de revisión';
 
-  InputDecoration buildInputDecoration(String label, IconData icon) {
-    return InputDecoration(
-      labelText: label,
-
-      prefixIcon: Icon(icon, color: const Color(0xFF1E4F6D)),
-
-      filled: true,
-      fillColor: Colors.white,
-
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-
-      focusedBorder: const OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(14)),
-
-        borderSide: BorderSide(color: Color(0xFF1E4F6D), width: 2),
-      ),
-    );
-  }
-
-  Widget buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Campo requerido';
-          }
-
-          return null;
-        },
-
-        decoration: buildInputDecoration(label, icon).copyWith(hintText: hint),
-      ),
-    );
-  }
-
   void saveNotebook() {
     if (_formKey.currentState!.validate()) {
       final notebook = NotebookModel(
@@ -105,28 +56,6 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
     }
   }
 
-  Color getStatusColor(String estado) {
-    switch (estado.toLowerCase()) {
-      case 'disponible':
-        return Colors.green;
-
-      case 'en reparación':
-        return Colors.amber;
-
-      case 'vendido':
-        return Colors.blue;
-
-      case 'merma':
-        return Colors.red;
-
-      case 'pendiente de revisión':
-        return Colors.deepPurple;
-
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,7 +63,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
       appBar: AppBar(
         backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF0F2A3D),
+        foregroundColor: AppColors.secondary,
         elevation: 0,
 
         title: const Text(
@@ -152,49 +81,49 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
           child: Column(
             children: [
-              buildTextField(
+              CustomTextField(
                 controller: codigoController,
                 label: 'Código',
                 hint: 'Ej: NB-011',
                 icon: Icons.qr_code,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: marcaController,
                 label: 'Marca',
                 hint: 'Ej: Lenovo',
                 icon: Icons.business,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: lineaController,
                 label: 'Línea',
                 hint: 'Ej: Thinkpad',
                 icon: Icons.category,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: modeloController,
                 label: 'Modelo',
                 hint: 'Ej: T14',
                 icon: Icons.laptop_mac,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: procesadorController,
                 label: 'Procesador',
                 hint: 'Ej: Intel Core i7',
                 icon: Icons.memory,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: generacionController,
                 label: 'Generación',
                 hint: 'Ej: 12va Gen',
                 icon: Icons.update,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: ramController,
                 label: 'RAM',
                 hint: 'Ej: 16GB',
@@ -202,14 +131,14 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 keyboardType: TextInputType.number,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: almacenamientoController,
                 label: 'Almacenamiento',
                 hint: 'Ej: 512GB SSD',
                 icon: Icons.sd_storage,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: tarjetaGraficaController,
                 label: 'Tarjeta gráfica',
                 hint: 'Ej: RTX 4060',
@@ -225,15 +154,15 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                   dropdownColor: Colors.white,
 
                   style: const TextStyle(
-                    color: Color(0xFF0F2A3D),
+                    color: AppColors.secondary,
                     fontWeight: FontWeight.w500,
                   ),
 
-                  iconEnabledColor: const Color(0xFF1E4F6D),
+                  iconEnabledColor: AppColors.primary,
 
-                  decoration: buildInputDecoration(
-                    'Estado',
-                    Icons.info_outline,
+                  decoration: customInputDecoration(
+                    label: 'Estado',
+                    icon: Icons.info_outline,
                   ),
 
                   items: ['Merma', 'Pendiente de revisión'].map((status) {
@@ -245,7 +174,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                           Icon(
                             Icons.circle,
                             size: 12,
-                            color: getStatusColor(status),
+                            color: NotebookUtils.getStatusColor(status),
                           ),
 
                           const SizedBox(width: 10),
@@ -264,14 +193,14 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 ),
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: seccionController,
                 label: 'Sección',
                 hint: 'Ej: A',
                 icon: Icons.grid_view,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: estanteController,
                 label: 'Estante',
                 hint: 'Ej: 2',
@@ -279,7 +208,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 keyboardType: TextInputType.number,
               ),
 
-              buildTextField(
+              CustomTextField(
                 controller: nivelController,
                 label: 'Nivel',
                 hint: 'Ej: 1',
@@ -294,7 +223,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E4F6D),
+                    backgroundColor: AppColors.primary,
 
                     foregroundColor: Colors.white,
 
