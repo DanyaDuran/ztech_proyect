@@ -5,11 +5,14 @@ import '../../core/theme/app_colors.dart';
 InputDecoration customInputDecoration({
   required String label,
   required IconData icon,
+  Widget? suffixIcon,
 }) {
   return InputDecoration(
     labelText: label,
 
     prefixIcon: Icon(icon, color: AppColors.primary),
+
+    suffixIcon: suffixIcon,
 
     filled: true,
     fillColor: Colors.white,
@@ -18,13 +21,11 @@ InputDecoration customInputDecoration({
 
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-
       borderSide: BorderSide(color: Colors.grey.shade300),
     ),
 
     focusedBorder: const OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(14)),
-
       borderSide: BorderSide(color: AppColors.primary, width: 2),
     ),
   );

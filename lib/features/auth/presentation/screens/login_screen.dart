@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+
 import '../../data/mock_users.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_validators.dart';
+import '../../../../shared/styles/input_decorations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,32 +50,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     _showMessage('Inicio de sesión con éxito');
 
-    String route;
+    final Map<String, String> roleRoutes = {
+      'admin': '/dashboard',
+      'bodega': '/bodega',
+      'tecnico': '/tecnico',
+      'ventas': '/ventas',
+      'superusuario': '/admin',
+    };
 
-    switch (user.rol) {
-      case 'admin':
-        route = '/dashboard';
-        break;
+    final route = roleRoutes[user.rol] ?? '/dashboard';
 
-      case 'bodega':
-        route = '/bodega';
-        break;
-
-      case 'tecnico':
-        route = '/tecnico';
-        break;
-
-      case 'ventas':
-        route = '/ventas';
-        break;
-
-      case 'superusuario':
-        route = '/admin';
-        break;
-
-      default:
-        route = '/dashboard';
-    }
     Navigator.pushReplacementNamed(context, route);
   }
 
@@ -91,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF001233),
+      backgroundColor: AppColors.backgroundDark,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -128,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF16354A),
+                      color: AppColors.textDark,
                     ),
                   ),
 
@@ -145,30 +133,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      hintText: 'Correo electrónico',
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      filled: true,
-                      fillColor: const Color(0xFFF4F7FA),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 18),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
+                    decoration: customInputDecoration(
+                      label: 'Correo electrónico',
+                      icon: Icons.email_outlined,
                     ),
-                    validator: (value) {
-                      final email = value?.trim() ?? '';
-
-                      if (email.isEmpty) {
-                        return 'El correo es obligatorio';
-                      }
-
-                      if (!email.contains('@') || !email.contains('.')) {
-                        return 'Ingresa un correo válido';
-                      }
-
-                      return null;
-                    },
+                    validator: AppValidators.email,
                   ),
 
                   const SizedBox(height: 18),
@@ -192,26 +161,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                       ),
                       filled: true,
-                      fillColor: const Color(0xFFF4F7FA),
+                      fillColor: AppColors.inputBackground,
                       contentPadding: const EdgeInsets.symmetric(vertical: 18),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (value) {
-                      final password = value?.trim() ?? '';
-
-                      if (password.isEmpty) {
-                        return 'La contraseña es obligatoria';
-                      }
-
-                      if (password.length < 8) {
-                        return 'La contraseña debe tener mínimo 8 caracteres';
-                      }
-
-                      return null;
-                    },
+                    validator: AppValidators.password,
                   ),
 
                   const SizedBox(height: 14),
@@ -225,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(
-                          color: Color(0xFF2E6F95),
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -239,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 58,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF16C7D8),
+                        backgroundColor: AppColors.accent,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
