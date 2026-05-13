@@ -1,14 +1,47 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
+
 class SidebarMenu extends StatelessWidget {
   final String currentRoute;
 
   const SidebarMenu({super.key, required this.currentRoute});
 
+  static const double _drawerWidth = 245;
+
   @override
   Widget build(BuildContext context) {
+    final menuItems = [
+      _SidebarItem(
+        icon: Icons.dashboard_outlined,
+        title: 'Dashboard',
+        route: '/dashboard',
+      ),
+      _SidebarItem(
+        icon: Icons.inventory_2_outlined,
+        title: 'Bodega',
+        route: '/bodega',
+      ),
+      _SidebarItem(
+        icon: Icons.build_outlined,
+        title: 'Técnico',
+        route: '/tecnico',
+      ),
+      _SidebarItem(
+        icon: Icons.point_of_sale_outlined,
+        title: 'Ventas',
+        route: '/ventas',
+      ),
+      _SidebarItem(
+        icon: Icons.group_outlined,
+        title: 'Usuarios',
+        route: '/admin',
+      ),
+    ];
+
     return Drawer(
-      backgroundColor: const Color(0xFF001233),
+      width: _drawerWidth,
+      backgroundColor: AppColors.backgroundDark,
       child: SafeArea(
         child: Column(
           children: [
@@ -16,7 +49,7 @@ class SidebarMenu extends StatelessWidget {
 
             Image.asset(
               'assets/images/logo_ztech.png',
-              height: 70,
+              height: 65,
               fit: BoxFit.contain,
             ),
 
@@ -24,56 +57,31 @@ class SidebarMenu extends StatelessWidget {
 
             const Text(
               'Gestión de notebooks',
-              style: TextStyle(color: Color(0xFFB8C7D3), fontSize: 13),
+              style: TextStyle(color: AppColors.textLight, fontSize: 12),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
-            _MenuItem(
-              icon: Icons.dashboard_outlined,
-              title: 'Dashboard',
-              route: '/dashboard',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.inventory_2_outlined,
-              title: 'Bodega',
-              route: '/bodega',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.build_outlined,
-              title: 'Técnico',
-              route: '/tecnico',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.point_of_sale_outlined,
-              title: 'Ventas',
-              route: '/ventas',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.group_outlined,
-              title: 'Usuarios',
-              route: '/admin',
-              currentRoute: currentRoute,
+            ...menuItems.map(
+              (item) => _MenuItem(
+                icon: item.icon,
+                title: item.title,
+                route: item.route,
+                currentRoute: currentRoute,
+              ),
             ),
 
             const Spacer(),
 
-            const Divider(color: Color(0xFF2F4A5F), thickness: 1),
+            const Divider(color: AppColors.divider, thickness: 1),
 
             ListTile(
-              leading: const Icon(Icons.logout, color: Color(0xFFFFB4A2)),
+              dense: true,
+              leading: const Icon(Icons.logout, color: AppColors.logout),
               title: const Text(
                 'Cerrar sesión',
                 style: TextStyle(
-                  color: Color(0xFFFFB4A2),
+                  color: AppColors.logout,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -94,6 +102,18 @@ class SidebarMenu extends StatelessWidget {
   }
 }
 
+class _SidebarItem {
+  final IconData icon;
+  final String title;
+  final String route;
+
+  const _SidebarItem({
+    required this.icon,
+    required this.title,
+    required this.route,
+  });
+}
+
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -112,20 +132,22 @@ class _MenuItem extends StatelessWidget {
     final bool isSelected = currentRoute == route;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF1E4F6D) : Colors.transparent,
+        color: isSelected ? AppColors.selectedMenu : Colors.transparent,
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
+        dense: true,
         leading: Icon(
           icon,
-          color: isSelected ? Colors.white : const Color(0xFFB8C7D3),
+          color: isSelected ? Colors.white : AppColors.textLight,
+          size: 22,
         ),
         title: Text(
           title,
           style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFFB8C7D3),
+            color: isSelected ? Colors.white : AppColors.textLight,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
           ),
         ),
