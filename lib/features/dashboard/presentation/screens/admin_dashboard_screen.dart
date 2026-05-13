@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/widgets/sidebar_menu.dart';
+import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
 import '../../../bodega/data/mock_notebooks.dart';
 
 class AdminDashboardScreen extends StatelessWidget {

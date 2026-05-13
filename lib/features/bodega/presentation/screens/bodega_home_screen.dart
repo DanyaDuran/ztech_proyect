@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ztech_flutter__app/shared/widgets/notebook_card.dart';
+import 'package:ztech_flutter__app/shared/cards/notebook_card.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/notebook_utils.dart';
-import '../../../../shared/widgets/campo_busqueda.dart';
-import '../../../../shared/widgets/estado_card.dart';
-import '../../../../shared/widgets/modal_filtros_estado.dart';
-import '../../../../shared/widgets/sidebar_menu.dart';
+import '../../../../shared/widgets/search/campo_busqueda.dart';
+import '../../../../shared/cards/estado_card.dart';
+import '../../../../shared/dialogs/modal_filtros_estado.dart';
+import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
 import '../../data/mock_notebooks.dart';
 import '../../domain/notebook_model.dart';
 import 'notebook_form_screen.dart';

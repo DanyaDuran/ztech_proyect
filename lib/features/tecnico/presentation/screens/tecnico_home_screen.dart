@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../shared/widgets/sidebar_menu.dart';
+import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
 
 class TecnicoHomeScreen extends StatelessWidget {
   const TecnicoHomeScreen({super.key});

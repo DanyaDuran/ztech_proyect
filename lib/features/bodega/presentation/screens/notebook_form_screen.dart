@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ztech_flutter__app/shared/widgets/input_decorations.dart';
+import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/notebook_utils.dart';
-import '../../../../shared/widgets/custom_text_field.dart';
+import '../../../../shared/widgets/forms/custom_text_field.dart';
 import '../../domain/notebook_model.dart';
 
 class NotebookFormScreen extends StatefulWidget {

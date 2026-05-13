@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'input_decorations.dart';
+import '../../styles/input_decorations.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;

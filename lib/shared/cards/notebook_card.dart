@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/notebook_utils.dart';
 import '../../features/bodega/domain/notebook_model.dart';
-import 'estado_badge.dart';
+import '../components/estado_badge.dart';
 
 class NotebookCard extends StatelessWidget {
   final NotebookModel notebook;
