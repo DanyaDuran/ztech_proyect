@@ -23,6 +23,7 @@ List<StatusHistoryModel> mockStatusHistory = [
     estadoNuevo: 'Merma',
     usuarioResponsable: 'tecnico@ztech.cl',
     fecha: DateTime.now().subtract(const Duration(hours: 5)),
-    observacion: 'Derrame de líquido daña componentes irreparables. Pasa a desarme.',
+    observacion:
+        'Derrame de líquido daña componentes irreparables. Pasa a desarme.',
   ),
 ];
