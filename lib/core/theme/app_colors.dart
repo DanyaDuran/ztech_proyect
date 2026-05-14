@@ -28,6 +28,8 @@ class AppColors {
   // GRISES / INPUTS
   // =========================
 
+  static const white = Colors.white;
+
   static const lightGrey = Color(0xFFF5F7FA);
 
   static const inputBackground = Color(0xFFF4F7FA);
@@ -51,4 +53,15 @@ class AppColors {
   static const divider = Color(0xFF2F4A5F);
 
   static const logout = Color(0xFFFFB4A2);
+  // =========================
+  // BORDES
+  // =========================
+
+  static const border = Color(0xFFE0E0E0);
+
+  // =========================
+  // SOMBRAS
+  // =========================
+
+  static const shadow = Color(0x1A000000);
 }

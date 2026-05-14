@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
 
 class CampoBusqueda extends StatelessWidget {
   final Function(String) onChanged;
@@ -15,25 +17,27 @@ class CampoBusqueda extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
 
-        hintStyle: const TextStyle(color: Color(0xFF9AA9B5)),
+        hintStyle: AppTextStyles.body.copyWith(color: AppColors.textLight),
 
         prefixIcon: const Icon(Icons.search, color: AppColors.primary),
 
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.white,
 
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+          borderSide: BorderSide(color: AppColors.border),
         ),
 
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+          borderSide: BorderSide(color: AppColors.border),
         ),
 
         focusedBorder: const OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderRadius: BorderRadius.all(
+            Radius.circular(AppDimensions.radiusMedium),
+          ),
           borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
