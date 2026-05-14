@@ -12,6 +12,8 @@ class NotebookModel {
   final String seccion;
   final String estante;
   final String nivel;
+  final String descripcionProblema;
+  final String observacionesBodega;
 
   NotebookModel({
     required this.codigo,
@@ -27,6 +29,8 @@ class NotebookModel {
     required this.seccion,
     required this.estante,
     required this.nivel,
+    this.descripcionProblema = '',
+    this.observacionesBodega = '',
   });
 
   factory NotebookModel.fromMap(Map<String, dynamic> map) {
@@ -44,6 +48,8 @@ class NotebookModel {
       seccion: map['seccion'] ?? '',
       estante: map['estante'] ?? '',
       nivel: map['nivel'] ?? '',
+      descripcionProblema: map['descripcionProblema'] ?? '',
+      observacionesBodega: map['observacionesBodega'] ?? '',
     );
   }
 
@@ -62,6 +68,8 @@ class NotebookModel {
       'seccion': seccion,
       'estante': estante,
       'nivel': nivel,
+      'descripcionProblema': descripcionProblema,
+      'observacionesBodega': observacionesBodega,
     };
   }
 }
