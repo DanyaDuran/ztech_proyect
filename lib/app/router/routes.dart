@@ -5,4 +5,5 @@ class AppRoutes {
   static const String tecnico = '/tecnico';
   static const String ventas = '/ventas';
   static const String admin = '/admin';
+  static const String reportes = '/reportes';
 }

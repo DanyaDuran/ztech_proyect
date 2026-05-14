@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/router/routes.dart';
+import '../../../core/auth/role_permissions.dart';
+import '../../../core/session/current_user.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -13,41 +16,52 @@ class SidebarMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final menuItems = [
+    final String? currentRole = CurrentUser.role;
+
+    final allMenuItems = [
       _SidebarItem(
         icon: Icons.dashboard_outlined,
         title: 'Dashboard',
-        route: '/dashboard',
+        route: AppRoutes.dashboard,
+      ),
+      _SidebarItem(
+        icon: Icons.bar_chart_outlined,
+        title: 'Reportes',
+        route: AppRoutes.reportes,
       ),
       _SidebarItem(
         icon: Icons.inventory_2_outlined,
         title: 'Bodega',
-        route: '/bodega',
+        route: AppRoutes.bodega,
       ),
       _SidebarItem(
         icon: Icons.build_outlined,
         title: 'Técnico',
-        route: '/tecnico',
+        route: AppRoutes.tecnico,
       ),
       _SidebarItem(
         icon: Icons.point_of_sale_outlined,
         title: 'Ventas',
-        route: '/ventas',
+        route: AppRoutes.ventas,
       ),
       _SidebarItem(
         icon: Icons.group_outlined,
         title: 'Usuarios',
-        route: '/admin',
+        route: AppRoutes.admin,
       ),
     ];
 
+    final menuItems = allMenuItems.where((item) {
+      return RolePermissions.canAccess(currentRole, item.route);
+    }).toList();
+
     return Drawer(
       width: _drawerWidth,
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: AppColors.sidebarBackground,
       child: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimensions.spacingLarge),
 
             Image.asset(
               'assets/images/logo_ztech.png',
@@ -82,15 +96,17 @@ class SidebarMenu extends StatelessWidget {
               leading: const Icon(Icons.logout, color: AppColors.logout),
               title: const Text('Cerrar sesión', style: AppTextStyles.logout),
               onTap: () {
+                CurrentUser.logout();
+
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  '/login',
+                  AppRoutes.login,
                   (route) => false,
                 );
               },
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: AppDimensions.spacingMedium),
           ],
         ),
       ),
@@ -128,16 +144,21 @@ class _MenuItem extends StatelessWidget {
     final bool isSelected = currentRoute == route;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.spacingSmall,
+        vertical: AppDimensions.spacingXSmall,
+      ),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.selectedMenu : Colors.transparent,
+        color: isSelected ? AppColors.sidebarSelected : Colors.transparent,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
       ),
       child: ListTile(
         dense: true,
         leading: Icon(
           icon,
-          color: isSelected ? AppColors.white : AppColors.textLight,
+          color: isSelected
+              ? AppColors.sidebarTextSelected
+              : AppColors.sidebarText,
           size: 22,
         ),
         title: Text(

@@ -11,6 +11,7 @@ import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
 import '../../data/mock_notebooks.dart';
 import '../../domain/notebook_model.dart';
 import 'notebook_form_screen.dart';
+import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
 
 class BodegaHomeScreen extends StatefulWidget {
   const BodegaHomeScreen({super.key});
@@ -34,14 +35,11 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.background,
+
       drawer: const SidebarMenu(currentRoute: '/bodega'),
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.secondary,
-        elevation: AppDimensions.appBarElevation,
-        title: const Text('Inventario', style: AppTextStyles.appBarTitle),
-      ),
+
+      appBar: const CustomAppBar(title: 'Inventario'),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
@@ -66,8 +64,6 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Inventario', style: AppTextStyles.pageTitle),
-
             const SizedBox(height: AppDimensions.spacingXSmall),
 
             const Text(

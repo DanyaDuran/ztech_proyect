@@ -4,6 +4,8 @@ import '../../data/mock_users.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_validators.dart';
 import '../../../../shared/styles/input_decorations.dart';
+import '../../../../core/session/current_user.dart';
+import '../../../../core/auth/role_permissions.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,15 +52,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     _showMessage('Inicio de sesión con éxito');
 
-    final Map<String, String> roleRoutes = {
-      'admin': '/dashboard',
-      'bodega': '/bodega',
-      'tecnico': '/tecnico',
-      'ventas': '/ventas',
-      'superusuario': '/admin',
-    };
+    CurrentUser.login(user);
 
-    final route = roleRoutes[user.rol] ?? '/dashboard';
+    final route = RolePermissions.initialRouteForRole(user.rol);
 
     Navigator.pushReplacementNamed(context, route);
   }

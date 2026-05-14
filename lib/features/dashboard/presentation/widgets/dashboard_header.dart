@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 class DashboardHeader extends StatelessWidget {
   final VoidCallback onShowMessage;
 
@@ -10,20 +14,19 @@ class DashboardHeader extends StatelessWidget {
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
       crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 16,
-      runSpacing: 16,
+      spacing: AppDimensions.inputSpacing,
+      runSpacing: AppDimensions.inputSpacing,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text('Dashboard', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-            SizedBox(height: 4),
-            Text('Resumen general del sistema', style: TextStyle(fontSize: 14, color: Colors.black54)),
+            Text('Resumen general del sistema', style: AppTextStyles.subtitle),
           ],
         ),
+
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: AppDimensions.spacingMedium,
+          runSpacing: AppDimensions.spacingMedium,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             ElevatedButton.icon(
@@ -31,22 +34,41 @@ class DashboardHeader extends StatelessWidget {
               icon: const Icon(Icons.download_rounded, size: 18),
               label: const Text('Exportar inventario CSV'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4A90E2),
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.textOnDark,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.buttonHorizontalPadding,
+                  vertical: AppDimensions.buttonVerticalPadding,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    AppDimensions.radiusSmall,
+                  ),
+                ),
               ),
             ),
+
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
-              child: Row(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.spacingMedium,
+                vertical: AppDimensions.spacingMedium,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.calendar_today_outlined, size: 16, color: Colors.black54),
-                  SizedBox(width: 8),
-                  Text('16 de noviembre de 2024', style: TextStyle(fontSize: 12, color: Colors.black87)),
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                  SizedBox(width: AppDimensions.spacingSmall),
+                  Text('16 de noviembre de 2024', style: AppTextStyles.body),
                 ],
               ),
             ),

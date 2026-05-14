@@ -9,6 +9,8 @@ import '../widgets/ventas_actions_section.dart';
 import '../widgets/ventas_modal_filters.dart';
 import '../widgets/ventas_notebook_card.dart';
 import '../widgets/ventas_info_banner.dart';
+import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class VentasHomeScreen extends StatefulWidget {
   const VentasHomeScreen({super.key});
@@ -96,30 +98,17 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       drawer: const SidebarMenu(currentRoute: '/ventas'),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.secondary,
-        elevation: 0,
-      ),
+      appBar: const CustomAppBar(title: 'Ventas'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Ventas',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
               'Registro de salidas de notebooks',
-              style: TextStyle(color: Color(0xFF6B7C8A), fontSize: 14),
+              style: AppTextStyles.subtitle,
             ),
             const SizedBox(height: 16),
             const VentasInfoBanner(),

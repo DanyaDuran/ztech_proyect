@@ -36,7 +36,7 @@ class VentasActionsSection extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
 
                   decoration: BoxDecoration(
-                    color: const Color(0xFF3C73E9),
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
 
