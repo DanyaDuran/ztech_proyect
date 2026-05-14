@@ -1,8 +1,7 @@
-import '../domain/notebook_model.dart';
-import 'mock_notebooks.dart';
+import '../../domain/notebook_model.dart';
+import '../mock_notebooks.dart';
 
 class NotebookRepository {
-
   Future<List<NotebookModel>> getNotebooks() async {
     await Future.delayed(const Duration(milliseconds: 400));
     return mockNotebooks;
@@ -24,7 +23,9 @@ class NotebookRepository {
 
   Future<void> updateNotebook(NotebookModel updatedNotebook) async {
     await Future.delayed(const Duration(milliseconds: 400));
-    final index = mockNotebooks.indexWhere((n) => n.codigo == updatedNotebook.codigo);
+    final index = mockNotebooks.indexWhere(
+      (n) => n.codigo == updatedNotebook.codigo,
+    );
 
     if (index != -1) {
       mockNotebooks[index] = updatedNotebook;
