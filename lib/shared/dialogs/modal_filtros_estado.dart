@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_dimensions.dart';
+import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/notebook_utils.dart';
 
 class ModalFiltrosEstado {
@@ -21,12 +23,14 @@ class ModalFiltrosEstado {
       context: context,
 
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppDimensions.radiusLarge),
+        ),
       ),
 
       builder: (context) {
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppDimensions.sectionSpacing),
 
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -35,25 +39,20 @@ class ModalFiltrosEstado {
             children: [
               const Text(
                 'Filtrar por estado',
-
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.secondary,
-                ),
+                style: AppTextStyles.sectionTitle,
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: AppDimensions.sectionSpacing),
 
               ...statuses.map((status) {
                 return ListTile(
                   leading: Icon(
                     Icons.circle,
-                    size: 14,
+                    size: AppDimensions.iconSmall,
                     color: NotebookUtils.getStatusColor(status),
                   ),
 
-                  title: Text(status),
+                  title: Text(status, style: AppTextStyles.body),
 
                   onTap: () {
                     onFilterSelected(status);
@@ -67,7 +66,7 @@ class ModalFiltrosEstado {
               ListTile(
                 leading: const Icon(Icons.refresh, color: AppColors.primary),
 
-                title: const Text('Mostrar todos'),
+                title: const Text('Mostrar todos', style: AppTextStyles.body),
 
                 onTap: () {
                   onReset();

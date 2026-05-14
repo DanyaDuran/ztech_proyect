@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_dimensions.dart';
+import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/notebook_utils.dart';
 import '../../features/bodega/domain/notebook_model.dart';
 import '../components/estado_badge.dart';
@@ -14,14 +16,14 @@ class NotebookCard extends StatelessWidget {
     final statusColor = NotebookUtils.getStatusColor(notebook.estado);
 
     return Card(
-      color: Colors.white,
-      elevation: 1,
-      margin: const EdgeInsets.only(bottom: 14),
+      color: AppColors.white,
+      elevation: AppDimensions.cardElevation,
+      margin: const EdgeInsets.only(bottom: AppDimensions.inputSpacing),
 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
 
       child: ListTile(
-        contentPadding: const EdgeInsets.all(14),
+        contentPadding: const EdgeInsets.all(AppDimensions.cardPadding),
 
         leading: Container(
           width: 50,
@@ -29,12 +31,12 @@ class NotebookCard extends StatelessWidget {
 
           decoration: BoxDecoration(
             color: AppColors.lightGrey,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
           ),
 
           child: const Icon(
             Icons.laptop_mac,
-            size: 28,
+            size: AppDimensions.iconLarge,
             color: AppColors.secondary,
           ),
         ),
@@ -42,10 +44,7 @@ class NotebookCard extends StatelessWidget {
         title: Text(
           '${notebook.marca} ${notebook.modelo}',
 
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.secondary,
-          ),
+          style: AppTextStyles.cardTitle,
         ),
 
         subtitle: Padding(
@@ -55,13 +54,9 @@ class NotebookCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
-              Text(
-                'Código: ${notebook.codigo}',
+              Text('Código: ${notebook.codigo}', style: AppTextStyles.body),
 
-                style: const TextStyle(color: AppColors.textGrey),
-              ),
-
-              const SizedBox(height: 4),
+              const SizedBox(height: AppDimensions.spacingXSmall),
 
               Text(
                 notebook.estado.toLowerCase() == 'vendido'
@@ -71,7 +66,7 @@ class NotebookCard extends StatelessWidget {
                           'E${notebook.estante} - '
                           'N${notebook.nivel}',
 
-                style: const TextStyle(color: AppColors.textGrey),
+                style: AppTextStyles.body,
               ),
             ],
           ),

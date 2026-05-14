@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
 
 class SidebarMenu extends StatelessWidget {
   final String currentRoute;
@@ -53,11 +55,11 @@ class SidebarMenu extends StatelessWidget {
               fit: BoxFit.contain,
             ),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: AppDimensions.spacingXSmall),
 
             const Text(
               'Gestión de notebooks',
-              style: TextStyle(color: AppColors.textLight, fontSize: 12),
+              style: AppTextStyles.sidebarSubtitle,
             ),
 
             const SizedBox(height: 28),
@@ -78,13 +80,7 @@ class SidebarMenu extends StatelessWidget {
             ListTile(
               dense: true,
               leading: const Icon(Icons.logout, color: AppColors.logout),
-              title: const Text(
-                'Cerrar sesión',
-                style: TextStyle(
-                  color: AppColors.logout,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              title: const Text('Cerrar sesión', style: AppTextStyles.logout),
               onTap: () {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
@@ -135,22 +131,22 @@ class _MenuItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: isSelected ? AppColors.selectedMenu : Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
       ),
       child: ListTile(
         dense: true,
         leading: Icon(
           icon,
-          color: isSelected ? Colors.white : AppColors.textLight,
+          color: isSelected ? AppColors.white : AppColors.textLight,
           size: 22,
         ),
         title: Text(
           title,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.textLight,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          ),
+          style: isSelected
+              ? AppTextStyles.sidebarSelected
+              : AppTextStyles.sidebarItem,
         ),
+
         onTap: () {
           if (currentRoute != route) {
             Navigator.pushReplacementNamed(context, route);

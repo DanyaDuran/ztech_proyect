@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_dimensions.dart';
+import '../../core/theme/app_text_styles.dart';
 
 class EstadoCard extends StatelessWidget {
   final String title;
@@ -18,9 +21,9 @@ class EstadoCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
 
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: AppColors.border),
 
         borderRadius: BorderRadius.circular(12),
       ),
@@ -30,27 +33,19 @@ class EstadoCard extends StatelessWidget {
           Text(
             title,
 
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
+            style: AppTextStyles.badge.copyWith(color: color, fontSize: 10),
           ),
 
           const SizedBox(height: 4),
 
-          Icon(Icons.remove, size: 14, color: color),
+          Icon(Icons.remove, size: AppDimensions.iconSmall, color: color),
 
           const SizedBox(height: 4),
 
           Text(
             count.toString(),
 
-            style: TextStyle(
-              color: color,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.statusCount.copyWith(color: color),
           ),
         ],
       ),
