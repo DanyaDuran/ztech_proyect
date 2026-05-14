@@ -36,4 +36,11 @@ final List<UserModel> mockUsers = [
     rol: 'ventas',
     activo: true,
   ),
+  UserModel(
+    nombre: 'Ex-Vendedor (Inactivo)',
+    correo: 'exvendedor@ztech.cl',
+    password: 'password123',
+    rol: 'ventas',
+    activo: false,
+  ),
 ];
