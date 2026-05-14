@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/notebook_utils.dart';
+import '../../../../shared/components/estado_badge.dart';
 import '../../../bodega/data/mock_notebooks.dart';
 
 class RecentNotebooksTable extends StatelessWidget {
@@ -10,11 +16,17 @@ class RecentNotebooksTable extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(AppDimensions.sectionSpacing),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,18 +34,24 @@ class RecentNotebooksTable extends StatelessWidget {
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
+            spacing: AppDimensions.spacingSmall,
+            runSpacing: AppDimensions.spacingSmall,
             children: [
-              const Text('Últimos notebooks registrados', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                'Últimos notebooks registrados',
+                style: AppTextStyles.sectionTitle,
+              ),
               OutlinedButton(onPressed: () {}, child: const Text('Ver todos')),
             ],
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: AppDimensions.inputSpacing),
+
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              headingTextStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+              headingTextStyle: AppTextStyles.cardTitle,
+              dataTextStyle: AppTextStyles.body,
               dataRowMaxHeight: 60,
               dataRowMinHeight: 60,
               columns: const [
@@ -43,20 +61,26 @@ class RecentNotebooksTable extends StatelessWidget {
                 DataColumn(label: Text('Ubicación')),
                 DataColumn(label: Text('Fecha ingreso')),
               ],
-              rows: recientes.map((n) {
-                Color statusColor;
-                switch (n.estado) {
-                  case 'Disponible': statusColor = Colors.green; break;
-                  case 'En reparación': statusColor = Colors.orange; break;
-                  case 'Vendido': statusColor = Colors.blue; break;
-                  case 'Merma': statusColor = Colors.red; break;
-                  default: statusColor = Colors.grey;
+              rows: recientes.map((notebook) {
+                final statusColor = NotebookUtils.getStatusColor(
+                  notebook.estado,
+                );
+
+                String ubicacion =
+                    '${notebook.seccion} ${notebook.estante}-${notebook.nivel}';
+
+                if (ubicacion.trim() == '- - -') {
+                  ubicacion = 'No asignada';
                 }
 
-                String ubicacion = '${n.seccion} ${n.estante}-${n.nivel}';
-                if (ubicacion.trim() == '- - -') ubicacion = 'No asignada';
-
-                return _buildDataRow(n.codigo, '${n.marca} ${n.modelo}', n.estado, statusColor, ubicacion, '16/11/2024');
+                return _buildDataRow(
+                  code: notebook.codigo,
+                  model: '${notebook.marca} ${notebook.modelo}',
+                  status: notebook.estado,
+                  statusColor: statusColor,
+                  location: ubicacion,
+                  date: '16/11/2024',
+                );
               }).toList(),
             ),
           ),
@@ -65,18 +89,27 @@ class RecentNotebooksTable extends StatelessWidget {
     );
   }
 
-  DataRow _buildDataRow(String code, String model, String status, Color statusColor, String location, String date) {
+  DataRow _buildDataRow({
+    required String code,
+    required String model,
+    required String status,
+    required Color statusColor,
+    required String location,
+    required String date,
+  }) {
     return DataRow(
       cells: [
-        DataCell(Text(code, style: const TextStyle(fontWeight: FontWeight.w500))),
-        DataCell(Text(model)),
         DataCell(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
-            child: Text(status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12)),
+          Text(
+            code,
+            style: AppTextStyles.body.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
+        DataCell(Text(model)),
+        DataCell(EstadoBadge(status: status, color: statusColor)),
         DataCell(Text(location)),
         DataCell(Text(date)),
       ],

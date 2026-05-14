@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
 import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
-import '../widgets/dashboard_header.dart';
 import '../widgets/dashboard_stats.dart';
 import '../widgets/stock_alert.dart';
 import '../widgets/dashboard_middle_section.dart';
 import '../widgets/recent_notebooks_table.dart';
+import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
+import '../../../../core/theme/app_text_styles.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -14,7 +18,7 @@ class AdminDashboardScreen extends StatelessWidget {
       const SnackBar(
         content: Text('Funcionalidad en desarrollo (Próximo Sprint)'),
         duration: Duration(seconds: 2),
-        backgroundColor: Color(0xFF1E293B),
+        backgroundColor: AppColors.secondary,
       ),
     );
   }
@@ -22,44 +26,51 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       drawer: const SidebarMenu(currentRoute: '/dashboard'),
-      appBar: _buildAppBar(context),
+      appBar: const CustomAppBar(title: 'Dashboard'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(AppDimensions.screenPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DashboardHeader(onShowMessage: () => _mostrarMensajeDesarrollo(context)),
-            const SizedBox(height: 24),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Resumen general del sistema',
+                  style: AppTextStyles.subtitle,
+                ),
+
+                const SizedBox(height: AppDimensions.sectionSpacing),
+
+                ElevatedButton.icon(
+                  onPressed: () => _mostrarMensajeDesarrollo(context),
+
+                  icon: const Icon(Icons.download_rounded),
+
+                  label: const Text('Exportar inventario CSV'),
+
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: AppColors.textOnDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppDimensions.sectionSpacing),
             const DashboardStats(),
             StockAlert(onShowMessage: () => _mostrarMensajeDesarrollo(context)),
-            const SizedBox(height: 24),
-            DashboardMiddleSection(onShowMessage: () => _mostrarMensajeDesarrollo(context)),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimensions.sectionSpacing),
+            DashboardMiddleSection(
+              onShowMessage: () => _mostrarMensajeDesarrollo(context),
+            ),
+            const SizedBox(height: AppDimensions.sectionSpacing),
             const RecentNotebooksTable(),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimensions.sectionSpacing),
           ],
         ),
       ),
-    );
-  }
-
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      iconTheme: const IconThemeData(color: Colors.black87),
-      actions: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: CircleAvatar(
-            backgroundColor: Color(0xFF4A90E2), 
-            radius: 16, 
-            child: Icon(Icons.person, color: Colors.white, size: 20)
-          ),
-        ),
-      ],
     );
   }
 }
