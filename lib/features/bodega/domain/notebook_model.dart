@@ -14,6 +14,7 @@ class NotebookModel {
   final String nivel;
   final String descripcionProblema;
   final String observacionesBodega;
+  final DateTime fechaIngreso;
 
   NotebookModel({
     required this.codigo,
@@ -31,7 +32,8 @@ class NotebookModel {
     required this.nivel,
     this.descripcionProblema = '',
     this.observacionesBodega = '',
-  });
+    DateTime? fechaIngreso,
+  }) : fechaIngreso = fechaIngreso ?? DateTime.now();
 
   factory NotebookModel.fromMap(Map<String, dynamic> map) {
     return NotebookModel(
@@ -50,6 +52,10 @@ class NotebookModel {
       nivel: map['nivel'] ?? '',
       descripcionProblema: map['descripcionProblema'] ?? '',
       observacionesBodega: map['observacionesBodega'] ?? '',
+      fechaIngreso: map['fechaIngreso'] is DateTime
+          ? map['fechaIngreso']
+          : DateTime.tryParse(map['fechaIngreso']?.toString() ?? '') ??
+                DateTime.now(),
     );
   }
 
@@ -70,6 +76,7 @@ class NotebookModel {
       'nivel': nivel,
       'descripcionProblema': descripcionProblema,
       'observacionesBodega': observacionesBodega,
+      'fechaIngreso': fechaIngreso.toIso8601String(),
     };
   }
 }

@@ -55,19 +55,6 @@ class ModalFiltrosVentas {
                   },
                 );
               }),
-
-              const Divider(),
-
-              ListTile(
-                leading: const Icon(Icons.refresh, color: AppColors.primary),
-
-                title: const Text('Mostrar todos'),
-
-                onTap: () {
-                  onReset();
-                  Navigator.pop(context);
-                },
-              ),
             ],
           ),
         );
