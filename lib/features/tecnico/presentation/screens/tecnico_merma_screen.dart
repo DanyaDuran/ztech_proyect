@@ -1,47 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:ztech_flutter__app/shared/widgets/sidebar/sidebar_menu.dart';
-import 'package:ztech_flutter__app/shared/widgets/app_bar/custom_app_bar.dart';
-import 'package:ztech_flutter__app/shared/widgets/search/campo_busqueda.dart';
-import 'package:ztech_flutter__app/shared/cards/estado_card.dart';
-
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+
+import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
+import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
+import '../../../../shared/widgets/search/campo_busqueda.dart';
+import 'package:ztech_flutter__app/shared/cards/estado_card.dart';
+
 import '../../../bodega/data/mock_notebooks.dart';
 import '../../../bodega/domain/notebook_model.dart';
+
 import '../widgets/tecnico_notebook_card.dart';
 import '../widgets/tecnico_botton_navigation.dart';
 import '../../../../core/utils/notebook_utils.dart';
 
-class TecnicoHomeScreen extends StatefulWidget {
-  const TecnicoHomeScreen({super.key});
+class TecnicoMermaScreen extends StatefulWidget {
+  const TecnicoMermaScreen({super.key});
 
   @override
-  State<TecnicoHomeScreen> createState() => _TecnicoHomeScreenState();
+  State<TecnicoMermaScreen> createState() => _TecnicoMermaScreenState();
 }
 
-class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
-  late List<NotebookModel> notebooksPendientes;
+class _TecnicoMermaScreenState extends State<TecnicoMermaScreen> {
+  late List<NotebookModel> notebooksMerma;
   late List<NotebookModel> filteredNotebooks;
 
   @override
   void initState() {
     super.initState();
 
-    notebooksPendientes = mockNotebooks
-        .where(
-          (notebook) =>
-              notebook.estado.toLowerCase() == 'pendiente de revisión',
-        )
+    notebooksMerma = mockNotebooks
+        .where((notebook) => notebook.estado.toLowerCase() == 'merma')
         .toList();
 
-    filteredNotebooks = notebooksPendientes;
+    filteredNotebooks = notebooksMerma;
   }
 
   void searchNotebook(String query) {
     setState(() {
       filteredNotebooks = NotebookUtils.searchNotebooks(
-        notebooks: notebooksPendientes,
+        notebooks: notebooksMerma,
         query: query,
       );
     });
@@ -62,8 +61,10 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
 
       drawer: const SidebarMenu(currentRoute: '/tecnico'),
 
-      appBar: const CustomAppBar(title: 'Técnico'),
-      bottomNavigationBar: const TecnicoBottomNavigation(currentIndex: 0),
+      appBar: const CustomAppBar(title: 'Merma'),
+
+      bottomNavigationBar: const TecnicoBottomNavigation(currentIndex: 3),
+
       body: Padding(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
         child: Column(
@@ -71,10 +72,7 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
           children: [
             const SizedBox(height: AppDimensions.spacingXSmall),
 
-            const Text(
-              'Notebooks pendientes de revisión técnica',
-              style: AppTextStyles.subtitle,
-            ),
+            const Text('Notebooks en merma', style: AppTextStyles.subtitle),
 
             const SizedBox(height: AppDimensions.sectionSpacing),
 
@@ -136,14 +134,11 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
                 ],
               ),
             ),
-
-            const SizedBox(height: AppDimensions.sectionSpacing),
-
             Expanded(
               child: filteredNotebooks.isEmpty
                   ? const Center(
                       child: Text(
-                        'No hay notebooks pendientes',
+                        'No hay notebooks en merma',
                         style: AppTextStyles.subtitle,
                       ),
                     )
