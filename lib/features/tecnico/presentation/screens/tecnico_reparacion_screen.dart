@@ -1,47 +1,49 @@
 import 'package:flutter/material.dart';
-import 'package:ztech_flutter__app/shared/widgets/sidebar/sidebar_menu.dart';
-import 'package:ztech_flutter__app/shared/widgets/app_bar/custom_app_bar.dart';
-import 'package:ztech_flutter__app/shared/widgets/search/campo_busqueda.dart';
-import 'package:ztech_flutter__app/shared/cards/estado_card.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+
+import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
+import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
+import '../../../../shared/widgets/search/campo_busqueda.dart';
+import '../../../../shared/cards/estado_card.dart';
+
 import '../../../bodega/data/mock_notebooks.dart';
 import '../../../bodega/domain/notebook_model.dart';
+
 import '../widgets/tecnico_notebook_card.dart';
 import '../widgets/tecnico_botton_navigation.dart';
+
 import '../../../../core/utils/notebook_utils.dart';
 
-class TecnicoHomeScreen extends StatefulWidget {
-  const TecnicoHomeScreen({super.key});
+class TecnicoReparacionScreen extends StatefulWidget {
+  const TecnicoReparacionScreen({super.key});
 
   @override
-  State<TecnicoHomeScreen> createState() => _TecnicoHomeScreenState();
+  State<TecnicoReparacionScreen> createState() =>
+      _TecnicoReparacionScreenState();
 }
 
-class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
-  late List<NotebookModel> notebooksPendientes;
+class _TecnicoReparacionScreenState extends State<TecnicoReparacionScreen> {
+  late List<NotebookModel> notebooksReparacion;
   late List<NotebookModel> filteredNotebooks;
 
   @override
   void initState() {
     super.initState();
 
-    notebooksPendientes = mockNotebooks
-        .where(
-          (notebook) =>
-              notebook.estado.toLowerCase() == 'pendiente de revisión',
-        )
+    notebooksReparacion = mockNotebooks
+        .where((notebook) => notebook.estado.toLowerCase() == 'en reparación')
         .toList();
 
-    filteredNotebooks = notebooksPendientes;
+    filteredNotebooks = notebooksReparacion;
   }
 
   void searchNotebook(String query) {
     setState(() {
       filteredNotebooks = NotebookUtils.searchNotebooks(
-        notebooks: notebooksPendientes,
+        notebooks: notebooksReparacion,
         query: query,
       );
     });
@@ -62,8 +64,10 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
 
       drawer: const SidebarMenu(currentRoute: '/tecnico'),
 
-      appBar: const CustomAppBar(title: 'Técnico'),
-      bottomNavigationBar: const TecnicoBottomNavigation(currentIndex: 0),
+      appBar: const CustomAppBar(title: 'En reparación'),
+
+      bottomNavigationBar: const TecnicoBottomNavigation(currentIndex: 1),
+
       body: Padding(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
         child: Column(
@@ -72,7 +76,7 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
             const SizedBox(height: AppDimensions.spacingXSmall),
 
             const Text(
-              'Notebooks pendientes de revisión técnica',
+              'Notebooks en reparación',
               style: AppTextStyles.subtitle,
             ),
 
@@ -93,7 +97,7 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
 
             const SizedBox(height: AppDimensions.sectionSpacing),
 
-            //Cantidades por estado, repetida del home de bodega
+            //Repetido del home de bodega
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -106,7 +110,9 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
                       color: AppColors.pendiente,
                     ),
                   ),
+
                   const SizedBox(width: AppDimensions.spacingSmall),
+
                   SizedBox(
                     width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
@@ -115,7 +121,9 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
                       color: AppColors.reparacion,
                     ),
                   ),
+
                   const SizedBox(width: AppDimensions.spacingSmall),
+
                   SizedBox(
                     width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
@@ -124,7 +132,9 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
                       color: AppColors.disponible,
                     ),
                   ),
+
                   const SizedBox(width: AppDimensions.spacingSmall),
+
                   SizedBox(
                     width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
@@ -143,7 +153,7 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
               child: filteredNotebooks.isEmpty
                   ? const Center(
                       child: Text(
-                        'No hay notebooks pendientes',
+                        'No hay notebooks en reparación',
                         style: AppTextStyles.subtitle,
                       ),
                     )
