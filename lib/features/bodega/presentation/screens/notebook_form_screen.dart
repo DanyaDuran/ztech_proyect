@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/notebook_utils.dart';
 import '../../../../shared/widgets/forms/custom_text_field.dart';
@@ -28,24 +29,49 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
   final estanteController = TextEditingController();
   final nivelController = TextEditingController();
 
+  final descripcionProblemaController = TextEditingController();
+  final observacionesBodegaController = TextEditingController();
+
   String estado = 'Pendiente de revisión';
+
+  @override
+  void dispose() {
+    codigoController.dispose();
+    marcaController.dispose();
+    lineaController.dispose();
+    modeloController.dispose();
+    procesadorController.dispose();
+    generacionController.dispose();
+    ramController.dispose();
+    almacenamientoController.dispose();
+    tarjetaGraficaController.dispose();
+    seccionController.dispose();
+    estanteController.dispose();
+    nivelController.dispose();
+    descripcionProblemaController.dispose();
+    observacionesBodegaController.dispose();
+    super.dispose();
+  }
 
   void saveNotebook() {
     if (_formKey.currentState!.validate()) {
       final notebook = NotebookModel(
-        codigo: codigoController.text,
-        marca: marcaController.text,
-        linea: lineaController.text,
-        modelo: modeloController.text,
-        procesador: procesadorController.text,
-        generacion: generacionController.text,
-        ram: ramController.text,
-        almacenamiento: almacenamientoController.text,
-        tarjetaGrafica: tarjetaGraficaController.text,
+        codigo: codigoController.text.trim(),
+        marca: marcaController.text.trim(),
+        linea: lineaController.text.trim(),
+        modelo: modeloController.text.trim(),
+        procesador: procesadorController.text.trim(),
+        generacion: generacionController.text.trim(),
+        ram: ramController.text.trim(),
+        almacenamiento: almacenamientoController.text.trim(),
+        tarjetaGrafica: tarjetaGraficaController.text.trim(),
         estado: estado,
-        seccion: seccionController.text,
-        estante: estanteController.text,
-        nivel: nivelController.text,
+        seccion: seccionController.text.trim(),
+        estante: estanteController.text.trim(),
+        nivel: nivelController.text.trim(),
+        descripcionProblema: descripcionProblemaController.text.trim(),
+        observacionesBodega: observacionesBodegaController.text.trim(),
+        fechaIngreso: DateTime.now(),
       );
 
       Navigator.pop(context, notebook);
@@ -65,20 +91,16 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.secondary,
         elevation: 0,
-
         title: const Text(
           'Registrar notebook',
-
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
 
       body: Form(
         key: _formKey,
-
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-
           child: Column(
             children: [
               CustomTextField(
@@ -214,6 +236,38 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 hint: 'Ej: 1',
                 icon: Icons.layers,
                 keyboardType: TextInputType.number,
+              ),
+
+              const SizedBox(height: 8),
+
+              TextFormField(
+                controller: descripcionProblemaController,
+                maxLines: 4,
+                textInputAction: TextInputAction.newline,
+                decoration:
+                    customInputDecoration(
+                      label: 'Descripción del problema',
+                      icon: Icons.report_problem_outlined,
+                    ).copyWith(
+                      hintText: 'Ej: No enciende al conectar cargador',
+                      alignLabelWithHint: true,
+                    ),
+              ),
+
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: observacionesBodegaController,
+                maxLines: 4,
+                textInputAction: TextInputAction.newline,
+                decoration:
+                    customInputDecoration(
+                      label: 'Observaciones de bodega',
+                      icon: Icons.notes_outlined,
+                    ).copyWith(
+                      hintText: 'Ej: Equipo ingresa sin batería',
+                      alignLabelWithHint: true,
+                    ),
               ),
 
               const SizedBox(height: 30),
