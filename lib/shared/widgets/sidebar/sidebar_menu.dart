@@ -1,97 +1,129 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/router/routes.dart';
+import '../../../core/auth/role_permissions.dart';
+import '../../../core/session/current_user.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+
 class SidebarMenu extends StatelessWidget {
   final String currentRoute;
 
   const SidebarMenu({super.key, required this.currentRoute});
 
+  static const double _drawerWidth = 245;
+
   @override
   Widget build(BuildContext context) {
+    final String? currentRole = CurrentUser.role;
+
+    final allMenuItems = [
+      _SidebarItem(
+        icon: Icons.dashboard_outlined,
+        title: 'Dashboard',
+        route: AppRoutes.dashboard,
+      ),
+      _SidebarItem(
+        icon: Icons.bar_chart_outlined,
+        title: 'Reportes',
+        route: AppRoutes.reportes,
+      ),
+      _SidebarItem(
+        icon: Icons.inventory_2_outlined,
+        title: 'Bodega',
+        route: AppRoutes.bodega,
+      ),
+      _SidebarItem(
+        icon: Icons.build_outlined,
+        title: 'Técnico',
+        route: AppRoutes.tecnico,
+      ),
+      _SidebarItem(
+        icon: Icons.point_of_sale_outlined,
+        title: 'Ventas',
+        route: AppRoutes.ventas,
+      ),
+      _SidebarItem(
+        icon: Icons.group_outlined,
+        title: 'Usuarios',
+        route: AppRoutes.admin,
+      ),
+    ];
+
+    final menuItems = allMenuItems.where((item) {
+      return RolePermissions.canAccess(currentRole, item.route);
+    }).toList();
+
     return Drawer(
-      backgroundColor: const Color(0xFF001233),
+      width: _drawerWidth,
+      backgroundColor: AppColors.sidebarBackground,
       child: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDimensions.spacingLarge),
 
             Image.asset(
               'assets/images/logo_ztech.png',
-              height: 70,
+              height: 65,
               fit: BoxFit.contain,
             ),
 
-            const SizedBox(height: 4),
+            const SizedBox(height: AppDimensions.spacingXSmall),
 
             const Text(
               'Gestión de notebooks',
-              style: TextStyle(color: Color(0xFFB8C7D3), fontSize: 13),
+              style: AppTextStyles.sidebarSubtitle,
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
 
-            _MenuItem(
-              icon: Icons.dashboard_outlined,
-              title: 'Dashboard',
-              route: '/dashboard',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.inventory_2_outlined,
-              title: 'Bodega',
-              route: '/bodega',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.build_outlined,
-              title: 'Técnico',
-              route: '/tecnico',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.point_of_sale_outlined,
-              title: 'Ventas',
-              route: '/ventas',
-              currentRoute: currentRoute,
-            ),
-
-            _MenuItem(
-              icon: Icons.group_outlined,
-              title: 'Usuarios',
-              route: '/admin',
-              currentRoute: currentRoute,
+            ...menuItems.map(
+              (item) => _MenuItem(
+                icon: item.icon,
+                title: item.title,
+                route: item.route,
+                currentRoute: currentRoute,
+              ),
             ),
 
             const Spacer(),
 
-            const Divider(color: Color(0xFF2F4A5F), thickness: 1),
+            const Divider(color: AppColors.divider, thickness: 1),
 
             ListTile(
-              leading: const Icon(Icons.logout, color: Color(0xFFFFB4A2)),
-              title: const Text(
-                'Cerrar sesión',
-                style: TextStyle(
-                  color: Color(0xFFFFB4A2),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              dense: true,
+              leading: const Icon(Icons.logout, color: AppColors.logout),
+              title: const Text('Cerrar sesión', style: AppTextStyles.logout),
               onTap: () {
+                CurrentUser.logout();
+
                 Navigator.pushNamedAndRemoveUntil(
                   context,
-                  '/login',
+                  AppRoutes.login,
                   (route) => false,
                 );
               },
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: AppDimensions.spacingMedium),
           ],
         ),
       ),
     );
   }
+}
+
+class _SidebarItem {
+  final IconData icon;
+  final String title;
+  final String route;
+
+  const _SidebarItem({
+    required this.icon,
+    required this.title,
+    required this.route,
+  });
 }
 
 class _MenuItem extends StatelessWidget {
@@ -112,23 +144,30 @@ class _MenuItem extends StatelessWidget {
     final bool isSelected = currentRoute == route;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.spacingSmall,
+        vertical: AppDimensions.spacingXSmall,
+      ),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF1E4F6D) : Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        color: isSelected ? AppColors.sidebarSelected : Colors.transparent,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
       ),
       child: ListTile(
+        dense: true,
         leading: Icon(
           icon,
-          color: isSelected ? Colors.white : const Color(0xFFB8C7D3),
+          color: isSelected
+              ? AppColors.sidebarTextSelected
+              : AppColors.sidebarText,
+          size: 22,
         ),
         title: Text(
           title,
-          style: TextStyle(
-            color: isSelected ? Colors.white : const Color(0xFFB8C7D3),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          ),
+          style: isSelected
+              ? AppTextStyles.sidebarSelected
+              : AppTextStyles.sidebarItem,
         ),
+
         onTap: () {
           if (currentRoute != route) {
             Navigator.pushReplacementNamed(context, route);

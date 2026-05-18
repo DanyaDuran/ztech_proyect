@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_dimensions.dart';
+import '../../core/theme/app_text_styles.dart';
 
 class EstadoBadge extends StatelessWidget {
   final String status;
@@ -13,18 +15,10 @@ class EstadoBadge extends StatelessWidget {
 
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
       ),
 
-      child: Text(
-        status,
-
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
-        ),
-      ),
+      child: Text(status, style: AppTextStyles.badge.copyWith(color: color)),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
 import '../../../bodega/data/mock_notebooks.dart';
 import '../../../bodega/domain/notebook_model.dart';
@@ -9,6 +10,10 @@ import '../widgets/ventas_actions_section.dart';
 import '../widgets/ventas_modal_filters.dart';
 import '../widgets/ventas_notebook_card.dart';
 import '../widgets/ventas_info_banner.dart';
+import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import 'ventas_notebook_detail_screen.dart';
+import 'registrar_venta_screen.dart';
 
 class VentasHomeScreen extends StatefulWidget {
   const VentasHomeScreen({super.key});
@@ -23,23 +28,38 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
 
   List<NotebookModel> selectedNotebooks = [];
 
+  String searchQuery = '';
+  String? activeFilter;
+
   @override
   void initState() {
     super.initState();
 
     notebooks = mockNotebooks;
+    applyFilters();
+  }
 
-    filteredNotebooks = notebooks
-        .where((n) => n.estado == 'Disponible')
-        .toList();
+  List<NotebookModel> getBaseList() {
+    if (activeFilter != null) {
+      return notebooks.where((n) => n.estado == activeFilter).toList();
+    }
+
+    return notebooks.where((n) => n.estado == 'Disponible').toList();
+  }
+
+  void applyFilters() {
+    final baseList = getBaseList();
+
+    filteredNotebooks = NotebookUtils.searchNotebooks(
+      notebooks: baseList,
+      query: searchQuery,
+    );
   }
 
   void searchNotebook(String query) {
     setState(() {
-      filteredNotebooks = NotebookUtils.searchNotebooks(
-        notebooks: notebooks,
-        query: query,
-      );
+      searchQuery = query;
+      applyFilters();
     });
   }
 
@@ -57,6 +77,7 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
       if (selectedNotebooks.contains(notebook)) {
         selectedNotebooks.remove(notebook);
       } else {
+        selectedNotebooks.clear();
         selectedNotebooks.add(notebook);
       }
     });
@@ -65,65 +86,85 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
   void registrarSalida() {
     if (selectedNotebooks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecciona al menos un notebook'),
-        ),
+        const SnackBar(content: Text('Por favor, selecciona un notebook')),
       );
       return;
     }
 
-    final cantidadBorrados = selectedNotebooks.length;
+    final notebook = selectedNotebooks.first;
 
-    setState(() {
-      for (var notebook in selectedNotebooks) {
-        notebook.estado = 'Vendido';
-      }
-      filteredNotebooks = notebooks
-          .where((n) => n.estado == 'Disponible')
-          .toList();
-      selectedNotebooks.clear();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$cantidadBorrados notebook(s) registrados como vendidos',
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VentasNotebookDetailScreen(
+          notebook: notebook,
+          onRegistrarVenta: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => RegistrarVentaScreen(
+                  notebook: notebook,
+                  onConfirmarVenta: () {
+                    setState(() {
+                      notebook.estado = 'Vendido';
+                      selectedNotebooks.clear();
+                      activeFilter = null;
+                      applyFilters();
+                    });
+                  },
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
+  void applyStatusFilter(String status) {
+    setState(() {
+      activeFilter = status;
+      selectedNotebooks.clear();
+      applyFilters();
+    });
+  }
+
+  void resetFilters() {
+    setState(() {
+      activeFilter = null;
+      selectedNotebooks.clear();
+      applyFilters();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final title = activeFilter == 'Vendido'
+        ? 'Notebooks vendidos'
+        : 'Notebooks disponibles';
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       drawer: const SidebarMenu(currentRoute: '/ventas'),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.secondary,
-        elevation: 0,
-      ),
+      appBar: const CustomAppBar(title: 'Ventas'),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Ventas',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.secondary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
               'Registro de salidas de notebooks',
-              style: TextStyle(color: Color(0xFF6B7C8A), fontSize: 14),
+              style: AppTextStyles.subtitle,
             ),
+
             const SizedBox(height: 16),
+
             const VentasInfoBanner(),
+
             const SizedBox(height: 20),
+
             Row(
               children: [
                 Expanded(
@@ -132,10 +173,12 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
                     onChanged: searchNotebook,
                   ),
                 ),
+
                 const SizedBox(width: 12),
+
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF1E4F6D),
+                    foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.primary),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -145,87 +188,81 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
                       vertical: 14,
                     ),
                   ),
+
                   onPressed: () {
                     ModalFiltrosVentas.show(
                       context: context,
-
-                      onFilterSelected: (status) {
-                        if (status != 'Disponible' && status != 'Vendido') {
-                          return;
-                        }
-
-                        setState(() {
-                          filteredNotebooks = notebooks
-                              .where((n) => n.estado == status)
-                              .toList();
-                        });
-                      },
-
-                      onReset: () {
-                        setState(() {
-                          filteredNotebooks = notebooks
-                              .where(
-                                (n) =>
-                                    n.estado == 'Disponible' ||
-                                    n.estado == 'Vendido',
-                              )
-                              .toList();
-                        });
-                      },
+                      onFilterSelected: applyStatusFilter,
+                      onReset: resetFilters,
                     );
                   },
+
                   icon: const Icon(Icons.filter_alt_outlined, size: 18),
                   label: const Text('Filtros', style: TextStyle(fontSize: 14)),
                 ),
               ],
             ),
+
             const SizedBox(height: 24),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Notebooks disponibles',
-                  style: TextStyle(
+                Text(
+                  title,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F2A3D),
+                    color: AppColors.secondary,
                   ),
                 ),
+
                 if (selectedNotebooks.isNotEmpty)
                   Text(
-                    '${selectedNotebooks.length} seleccionados',
+                    '${selectedNotebooks.length} seleccionado',
                     style: const TextStyle(
-                      color: Color(0xFF1E4F6D),
+                      color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
                   ),
               ],
             ),
+
             const SizedBox(height: 12),
+
             filteredNotebooks.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Center(child: Text('No hay notebooks disponibles')),
+                ? Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        activeFilter == 'Vendido'
+                            ? 'No hay notebooks vendidos'
+                            : 'No hay notebooks disponibles',
+                      ),
+                    ),
                   )
                 : ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: filteredNotebooks.length,
                     itemBuilder: (context, index) {
+                      final notebook = filteredNotebooks[index];
+
                       return VentaNotebookCard(
-                        notebook: filteredNotebooks[index],
-                        isSelected: selectedNotebooks.contains(
-                          filteredNotebooks[index],
-                        ),
+                        notebook: notebook,
+                        isSelected: selectedNotebooks.contains(notebook),
                         onToggleSelection: () {
-                          toggleSelection(filteredNotebooks[index]);
+                          toggleSelection(notebook);
                         },
                       );
                     },
                   ),
+
             const SizedBox(height: 16),
+
             VentasActionsSection(onRegistrarSalida: registrarSalida),
+
             const SizedBox(height: 24),
           ],
         ),

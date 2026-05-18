@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
+
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/notebook_utils.dart';
 import '../../../../core/utils/app_validators.dart';
 import '../../../../core/utils/code_generator.dart';
-import '../../../../shared/widgets/forms/custom_text_field.dart';
+import '../../../../core/utils/notebook_utils.dart';
 import '../../../../shared/widgets/forms/custom_dropdown_field.dart';
+import '../../../../shared/widgets/forms/custom_text_field.dart';
 import '../../data/notebook_options.dart';
 import '../../data/repositories/notebook_repository.dart';
 import '../../domain/notebook_model.dart';
@@ -37,8 +38,9 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
   String? seccion;
   String? estante;
   String? nivel;
+
   String estado = NotebookOptions.estadosInicialesBodega.first;
-  
+
   bool _isLoading = false;
 
   @override
@@ -61,7 +63,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
       final notebooks = await _notebookRepository.getNotebooks();
       final currentCount = notebooks.length;
       final newCode = CodeGenerator.generateNotebookCode(currentCount);
-      
+
       if (mounted) {
         setState(() {
           codigoController.text = newCode;
@@ -77,49 +79,59 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
   }
 
   Future<void> saveNotebook() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-      final notebook = NotebookModel(
-        codigo: codigoController.text.trim(),
-        marca: marca ?? '',
-        linea: linea ?? '',
-        modelo: modeloController.text.trim(),
-        procesador: '${familiaProcesador ?? ''} ${serieProcesador ?? ''}'.trim(),
-        generacion: generacion ?? '',
-        ram: ram ?? '',
-        almacenamiento: almacenamiento ?? '',
-        tarjetaGrafica: tarjetaGrafica ?? '',
-        estado: estado,
-        seccion: seccion ?? '',
-        estante: estante ?? '',
-        nivel: nivel ?? '',
-        descripcionProblema: descripcionProblemaController.text.trim(),
-        observacionesBodega: observacionesBodegaController.text.trim(),
-      );
+    setState(() {
+      _isLoading = true;
+    });
 
-      try {
-        await _notebookRepository.addNotebook(notebook);
-        if (mounted) {
-          Navigator.pop(context, notebook);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notebook registrado correctamente')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error al guardar el notebook')),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+    final notebook = NotebookModel(
+      codigo: codigoController.text.trim(),
+      marca: marca ?? '',
+      linea: linea ?? '',
+      modelo: modeloController.text.trim(),
+      procesador:
+          '${familiaProcesador ?? ''} ${serieProcesador ?? ''}'.trim(),
+      generacion: generacion ?? '',
+      ram: ram ?? '',
+      almacenamiento: almacenamiento ?? '',
+      tarjetaGrafica: tarjetaGrafica ?? '',
+      estado: estado,
+      seccion: seccion ?? '',
+      estante: estante ?? '',
+      nivel: nivel ?? '',
+      descripcionProblema: descripcionProblemaController.text.trim(),
+      observacionesBodega: observacionesBodegaController.text.trim(),
+      fechaIngreso: DateTime.now(),
+    );
+
+    try {
+      await _notebookRepository.addNotebook(notebook);
+
+      if (mounted) {
+        Navigator.pop(context, notebook);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Notebook registrado correctamente'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error al guardar el notebook'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -129,7 +141,11 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
       padding: const EdgeInsets.only(bottom: 16, top: 8),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.primary, size: 20),
+          Icon(
+            icon,
+            color: AppColors.primary,
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Text(
             title,
@@ -144,34 +160,70 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
     );
   }
 
+  bool _hasSelectedTechnicalSpecs() {
+    return marca != null &&
+        linea != null &&
+        familiaProcesador != null &&
+        serieProcesador != null &&
+        generacion != null &&
+        ram != null &&
+        almacenamiento != null &&
+        tarjetaGrafica != null &&
+        seccion != null &&
+        estante != null &&
+        nivel != null;
+  }
+
+  void _validateDropdownsBeforeSave() {
+    if (!_hasSelectedTechnicalSpecs()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Completa todos los campos desplegables obligatorios'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+
       appBar: AppBar(
         backgroundColor: Colors.white,
         foregroundColor: AppColors.secondary,
         elevation: 0,
         title: const Text(
           'Registrar notebook',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
+
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 10,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Identificación del Equipo', Icons.badge_outlined),
+              _buildSectionTitle(
+                'Identificación del Equipo',
+                Icons.badge_outlined,
+              ),
+
               CustomTextField(
                 controller: codigoController,
                 label: 'Código Interno',
-                hint: 'Ej: NB-011',
+                hint: 'Ej: ZT-001',
                 icon: Icons.qr_code,
                 validator: AppValidators.codigoNotebook,
               ),
+
               Row(
                 children: [
                   Expanded(
@@ -197,6 +249,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                   ),
                 ],
               ),
+
               CustomTextField(
                 controller: modeloController,
                 label: 'Modelo específico',
@@ -204,10 +257,14 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 icon: Icons.laptop_mac,
                 validator: AppValidators.modeloNotebook,
               ),
-              
+
               const Divider(height: 32),
-              _buildSectionTitle('Especificaciones Técnicas', Icons.memory),
-              
+
+              _buildSectionTitle(
+                'Especificaciones Técnicas',
+                Icons.memory,
+              ),
+
               CustomDropdownField(
                 label: 'Familia CPU',
                 icon: Icons.memory,
@@ -216,6 +273,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 items: NotebookOptions.familiasProcesador,
                 onChanged: (val) => setState(() => familiaProcesador = val),
               ),
+
               CustomDropdownField(
                 label: 'Serie CPU',
                 icon: Icons.memory_outlined,
@@ -224,6 +282,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 items: NotebookOptions.seriesProcesador,
                 onChanged: (val) => setState(() => serieProcesador = val),
               ),
+
               CustomDropdownField(
                 label: 'Generación',
                 icon: Icons.update,
@@ -232,6 +291,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 items: NotebookOptions.generaciones,
                 onChanged: (val) => setState(() => generacion = val),
               ),
+
               CustomDropdownField(
                 label: 'Memoria RAM',
                 icon: Icons.storage,
@@ -240,6 +300,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 items: NotebookOptions.ram,
                 onChanged: (val) => setState(() => ram = val),
               ),
+
               CustomDropdownField(
                 label: 'Almacenamiento (Disco)',
                 icon: Icons.sd_storage,
@@ -248,6 +309,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 items: NotebookOptions.almacenamiento,
                 onChanged: (val) => setState(() => almacenamiento = val),
               ),
+
               CustomDropdownField(
                 label: 'Tarjeta gráfica',
                 icon: Icons.videogame_asset,
@@ -256,9 +318,13 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 items: NotebookOptions.tarjetasGraficas,
                 onChanged: (val) => setState(() => tarjetaGrafica = val),
               ),
-              
+
               const Divider(height: 32),
-              _buildSectionTitle('Estado y Ubicación', Icons.location_on_outlined),
+
+              _buildSectionTitle(
+                'Estado y Ubicación',
+                Icons.location_on_outlined,
+              ),
 
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
@@ -298,6 +364,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                   },
                 ),
               ),
+
               CustomDropdownField(
                 label: 'Sección',
                 icon: Icons.grid_view,
@@ -306,6 +373,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 items: NotebookOptions.secciones,
                 onChanged: (val) => setState(() => seccion = val),
               ),
+
               Row(
                 children: [
                   Expanded(
@@ -331,14 +399,21 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                   ),
                 ],
               ),
-              
+
               const Divider(height: 32),
-              _buildSectionTitle('Detalles Adicionales', Icons.notes),
+
+              _buildSectionTitle(
+                'Detalles Adicionales',
+                Icons.notes,
+              ),
 
               TextFormField(
                 controller: descripcionProblemaController,
                 maxLines: 3,
-                validator: (val) => AppValidators.descripcionOpcional(val, 'La descripción'),
+                validator: (val) => AppValidators.descripcionOpcional(
+                  val,
+                  'La descripción',
+                ),
                 textInputAction: TextInputAction.newline,
                 decoration: customInputDecoration(
                   label: 'Descripción del problema',
@@ -348,11 +423,16 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                   alignLabelWithHint: true,
                 ),
               ),
+
               const SizedBox(height: 16),
+
               TextFormField(
                 controller: observacionesBodegaController,
                 maxLines: 3,
-                validator: (val) => AppValidators.descripcionOpcional(val, 'La observación'),
+                validator: (val) => AppValidators.descripcionOpcional(
+                  val,
+                  'La observación',
+                ),
                 textInputAction: TextInputAction.newline,
                 decoration: customInputDecoration(
                   label: 'Observaciones de bodega',
@@ -362,7 +442,9 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                   alignLabelWithHint: true,
                 ),
               ),
+
               const SizedBox(height: 40),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -374,16 +456,32 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: _isLoading ? null : saveNotebook,
-                  icon: _isLoading 
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          _validateDropdownsBeforeSave();
+                          saveNotebook();
+                        },
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Icon(Icons.save),
                   label: Text(
                     _isLoading ? 'Guardando...' : 'Guardar notebook',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
             ],
           ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ztech_flutter__app/shared/cards/notebook_card.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/notebook_utils.dart';
 import '../../../../shared/widgets/search/campo_busqueda.dart';
 import '../../../../shared/cards/estado_card.dart';
@@ -9,6 +11,7 @@ import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
 import '../../data/mock_notebooks.dart';
 import '../../domain/notebook_model.dart';
 import 'notebook_form_screen.dart';
+import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
 
 class BodegaHomeScreen extends StatefulWidget {
   const BodegaHomeScreen({super.key});
@@ -32,21 +35,15 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
+
       drawer: const SidebarMenu(currentRoute: '/bodega'),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.secondary,
-        elevation: 0,
-        title: const Text(
-          'Inventario',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
+
+      appBar: const CustomAppBar(title: 'Inventario'),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.add),
+        foregroundColor: AppColors.white,
+        child: const Icon(Icons.add, size: AppDimensions.iconMedium),
 
         onPressed: () async {
           final result = await Navigator.push(
@@ -63,27 +60,18 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
         },
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDimensions.screenPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Inventario',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.secondary,
-              ),
-            ),
-
-            const SizedBox(height: 4),
+            const SizedBox(height: AppDimensions.spacingXSmall),
 
             const Text(
               'Gestión de notebooks en bodega',
-              style: TextStyle(color: AppColors.textGrey),
+              style: AppTextStyles.subtitle,
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppDimensions.sectionSpacing),
 
             Row(
               children: [
@@ -101,7 +89,7 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                   ),
                 ),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: AppDimensions.spacingMedium),
 
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
@@ -110,12 +98,14 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                     side: const BorderSide(color: AppColors.primary),
 
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusMedium,
+                      ),
                     ),
 
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 18,
+                      horizontal: AppDimensions.buttonHorizontalPadding,
+                      vertical: AppDimensions.buttonVerticalPadding,
                     ),
                   ),
 
@@ -144,7 +134,7 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
               ],
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppDimensions.sectionSpacing),
 
             // Cantidades por estado
             SingleChildScrollView(
@@ -152,7 +142,7 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
               child: Row(
                 children: [
                   SizedBox(
-                    width: 80,
+                    width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
                       title: 'Disp.',
                       count: NotebookUtils.getCountByStatus(
@@ -162,9 +152,9 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                       color: AppColors.disponible,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppDimensions.spacingSmall),
                   SizedBox(
-                    width: 80,
+                    width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
                       title: 'Repar',
                       count: NotebookUtils.getCountByStatus(
@@ -174,9 +164,9 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                       color: AppColors.reparacion,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppDimensions.spacingSmall),
                   SizedBox(
-                    width: 80,
+                    width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
                       title: 'Vend.',
                       count: NotebookUtils.getCountByStatus(
@@ -186,9 +176,9 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                       color: AppColors.vendido,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppDimensions.spacingSmall),
                   SizedBox(
-                    width: 80,
+                    width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
                       title: 'Merma',
                       count: NotebookUtils.getCountByStatus(
@@ -198,9 +188,9 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                       color: AppColors.merma,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppDimensions.spacingSmall),
                   SizedBox(
-                    width: 80,
+                    width: AppDimensions.statusCardWidth,
                     child: EstadoCard(
                       title: 'Rev.',
                       count: NotebookUtils.getCountByStatus(
@@ -214,10 +204,15 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: AppDimensions.sectionSpacing),
             Expanded(
               child: filteredNotebooks.isEmpty
-                  ? const Center(child: Text('No se encontraron notebooks'))
+                  ? const Center(
+                      child: Text(
+                        'No se encontraron notebooks',
+                        style: AppTextStyles.subtitle,
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: filteredNotebooks.length,
                       itemBuilder: (context, index) {
