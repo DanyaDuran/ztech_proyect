@@ -6,7 +6,8 @@ class CustomTextField extends StatelessWidget {
   final String label;
   final String hint;
   final IconData icon;
-  final TextInputType keyboardType;
+  final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
 
   const CustomTextField({
     super.key,
@@ -14,30 +15,25 @@ class CustomTextField extends StatelessWidget {
     required this.label,
     required this.hint,
     required this.icon,
-    this.keyboardType = TextInputType.text,
+    this.keyboardType,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Campo requerido';
-          }
-
-          return null;
-        },
-
+        validator: validator,
         decoration: customInputDecoration(
           label: label,
           icon: icon,
-        ).copyWith(hintText: hint),
+        ).copyWith(
+          hintText: hint,
+          alignLabelWithHint: true,
+        ),
       ),
     );
   }
