@@ -4,30 +4,65 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
+import '../../../bodega/data/mock_status_history.dart';
 import '../../../bodega/domain/notebook_model.dart';
+import '../../../bodega/domain/status_history_model.dart';
 
 import '../dialogs/tecnico_estado_dialog.dart';
 import '../widgets/tecnico_botton_navigation.dart';
 
-import '../../../bodega/data/mock_status_history.dart';
-import '../../../bodega/domain/status_history_model.dart';
-
-class TecnicoNotebookDetailScreen extends StatelessWidget {
+class TecnicoNotebookDetailScreen extends StatefulWidget {
   final NotebookModel notebook;
 
   const TecnicoNotebookDetailScreen({super.key, required this.notebook});
+
+  @override
+  State<TecnicoNotebookDetailScreen> createState() =>
+      _TecnicoNotebookDetailScreenState();
+}
+
+class _TecnicoNotebookDetailScreenState
+    extends State<TecnicoNotebookDetailScreen> {
+  NotebookModel get notebook => widget.notebook;
+
   List<StatusHistoryModel> getHistory() {
     return mockStatusHistory
         .where((h) => h.codigoNotebook == notebook.codigo)
+        .toList()
+        .reversed
         .toList();
   }
 
-  bool isPendiente() {
-    return notebook.estado.toLowerCase() == 'pendiente de revisión';
+  bool get isPendiente =>
+      notebook.estado.toLowerCase() == 'pendiente de revisión';
+
+  bool get isEnReparacion =>
+      notebook.estado.toLowerCase() == 'en reparación' ||
+      notebook.estado.toLowerCase() == 'en reparacion';
+
+  int get currentBottomIndex {
+    if (isPendiente) return 0;
+    if (isEnReparacion) return 1;
+    if (notebook.estado.toLowerCase() == 'disponible') return 2;
+    if (notebook.estado.toLowerCase() == 'merma') return 3;
+    return 0;
   }
 
-  bool isEnReparacion() {
-    return notebook.estado.toLowerCase() == 'en reparación';
+  Future<void> _abrirDialogoTecnico() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => TecnicoEstadoDialog(notebook: notebook),
+    );
+
+    if (result == true && mounted) {
+      setState(() {});
+
+      if (isEnReparacion) {
+        Navigator.pop(context);
+      } else if (!isPendiente && !isEnReparacion) {
+        Navigator.pop(context);
+      }
+    }
   }
 
   @override
@@ -42,7 +77,9 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: AppColors.secondary),
       ),
 
-      bottomNavigationBar: const TecnicoBottomNavigation(currentIndex: 0),
+      bottomNavigationBar: TecnicoBottomNavigation(
+        currentIndex: currentBottomIndex,
+      ),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
@@ -55,11 +92,12 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
             _buildInfoTable(),
 
             const SizedBox(height: AppDimensions.sectionSpacing),
+
             _buildHistorial(),
 
             const SizedBox(height: AppDimensions.sectionSpacing),
 
-            _buildBotonTecnico(context),
+            _buildBotonTecnico(),
           ],
         ),
       ),
@@ -122,20 +160,16 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
       case 'disponible':
         color = AppColors.statusAvailable;
         break;
-
       case 'en reparación':
       case 'en reparacion':
         color = AppColors.statusRepair;
         break;
-
       case 'vendido':
         color = AppColors.statusSold;
         break;
-
       case 'merma':
         color = AppColors.statusDiscarded;
         break;
-
       default:
         color = AppColors.statusPending;
     }
@@ -180,13 +214,19 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
             _row('Procesador', notebook.procesador),
             _row('RAM', notebook.ram),
             _row('Almacenamiento', notebook.almacenamiento),
+            _row('Tarjeta gráfica', notebook.tarjetaGrafica),
             _row('Estado', notebook.estado),
-
             _row(
               'Problema\nreportado',
               notebook.descripcionProblema.isEmpty
                   ? 'Sin problema reportado'
                   : notebook.descripcionProblema,
+            ),
+            _row(
+              'Obs. bodega',
+              notebook.observacionesBodega.isEmpty
+                  ? '-'
+                  : notebook.observacionesBodega,
             ),
           ],
         ),
@@ -238,10 +278,14 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
+                      if (h.diagnostico.trim().isNotEmpty)
+                        Text('Diagnóstico: ${h.diagnostico}'),
+                      if (h.accionesRealizadas.trim().isNotEmpty)
+                        Text('Acciones: ${h.accionesRealizadas}'),
                       Text('Obs: ${h.observacion}'),
                       const SizedBox(height: 4),
                       Text(
-                        '${h.usuarioResponsable} - ${h.fecha.day}/${h.fecha.month}/${h.fecha.year}',
+                        '${h.usuarioResponsable} - ${_formatDateTime(h.fecha)}',
                         style: AppTextStyles.subtitle,
                       ),
                     ],
@@ -261,6 +305,7 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
         border: Border(bottom: BorderSide(color: AppColors.border, width: 0.6)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 135,
@@ -280,8 +325,8 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBotonTecnico(BuildContext context) {
-    if (!isPendiente() && !isEnReparacion()) {
+  Widget _buildBotonTecnico() {
+    if (!isPendiente && !isEnReparacion) {
       return const SizedBox();
     }
 
@@ -297,17 +342,22 @@ class TecnicoNotebookDetailScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
           ),
         ),
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (_) => TecnicoEstadoDialog(notebook: notebook),
-          );
-        },
+        onPressed: _abrirDialogoTecnico,
         child: Text(
-          isPendiente() ? 'Iniciar revisión' : 'Actualizar estado',
+          isPendiente ? 'Iniciar revisión' : 'Actualizar estado',
           style: AppTextStyles.button,
         ),
       ),
     );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final year = dateTime.year.toString();
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year - $hour:$minute';
   }
 }

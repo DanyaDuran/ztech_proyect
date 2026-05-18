@@ -9,6 +9,7 @@ import '../widgets/dashboard_middle_section.dart';
 import '../widgets/recent_notebooks_table.dart';
 import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../reportes/presentation/screens/reportes_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -23,50 +24,60 @@ class AdminDashboardScreen extends StatelessWidget {
     );
   }
 
+  void _irAReportes(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ReportesScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       drawer: const SidebarMenu(currentRoute: '/dashboard'),
       appBar: const CustomAppBar(title: 'Dashboard'),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Resumen general del sistema',
-                  style: AppTextStyles.subtitle,
-                ),
-
-                const SizedBox(height: AppDimensions.sectionSpacing),
-
-                ElevatedButton.icon(
-                  onPressed: () => _mostrarMensajeDesarrollo(context),
-
-                  icon: const Icon(Icons.download_rounded),
-
-                  label: const Text('Exportar inventario CSV'),
-
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.textOnDark,
-                  ),
-                ),
-              ],
+            const Text(
+              'Resumen general del sistema',
+              style: AppTextStyles.subtitle,
             ),
+
             const SizedBox(height: AppDimensions.sectionSpacing),
+
+            ElevatedButton.icon(
+              onPressed: () => _irAReportes(context),
+              icon: const Icon(Icons.download_rounded),
+              label: const Text('Ir a reportes CSV'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: AppColors.textOnDark,
+              ),
+            ),
+
+            const SizedBox(height: AppDimensions.sectionSpacing),
+
             const DashboardStats(),
+
             StockAlert(onShowMessage: () => _mostrarMensajeDesarrollo(context)),
+
             const SizedBox(height: AppDimensions.sectionSpacing),
+
             DashboardMiddleSection(
               onShowMessage: () => _mostrarMensajeDesarrollo(context),
             ),
+
             const SizedBox(height: AppDimensions.sectionSpacing),
+
             const RecentNotebooksTable(),
+
             const SizedBox(height: AppDimensions.sectionSpacing),
           ],
         ),

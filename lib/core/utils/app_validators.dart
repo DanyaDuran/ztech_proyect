@@ -49,6 +49,20 @@ class AppValidators {
     return null;
   }
 
+  static String? modeloSerie(String? value) {
+    final model = value?.trim() ?? '';
+
+    if (model.isEmpty) {
+      return 'El modelo es obligatorio';
+    }
+
+    if (!RegExp(r'^[A-Z]{1}\d{6}$').hasMatch(model)) {
+      return 'Formato inválido. Ej: T123456';
+    }
+
+    return null;
+  }
+
   static String? modeloNotebook(String? value) {
     final model = value?.trim() ?? '';
 

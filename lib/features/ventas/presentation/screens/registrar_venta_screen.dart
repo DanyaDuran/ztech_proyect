@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
@@ -40,91 +41,140 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
     super.dispose();
   }
 
-  void confirmarVenta() {
-    if (_formKey.currentState!.validate()) {
-      final venta = VentaModel(
-        notebook: widget.notebook,
-        cliente: clienteController.text.trim(),
-        telefono: telefonoController.text.trim(),
-        precio: precioController.text.trim(),
-        formaPago: formaPago,
-        notas: notasController.text.trim(),
-        fechaVenta: DateTime.now(),
-      );
+  String? validarNombreCompleto(String? value) {
+    final text = value?.trim() ?? '';
 
-      mockVentas.add(venta);
-      widget.onConfirmarVenta();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Venta registrada correctamente')),
-      );
-
-      Navigator.of(context).popUntil((route) => route.isFirst);
+    if (text.isEmpty) {
+      return 'El nombre completo es obligatorio';
     }
+
+    final partes = text.split(' ').where((p) => p.isNotEmpty).toList();
+
+    if (partes.length < 2) {
+      return 'Ingresa nombre y apellido';
+    }
+
+    if (!RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$').hasMatch(text)) {
+      return 'El nombre solo debe contener letras';
+    }
+
+    return null;
+  }
+
+  String? validarTelefono(String? value) {
+    final text = value?.trim() ?? '';
+
+    if (text.isEmpty) {
+      return 'El teléfono es obligatorio';
+    }
+
+    if (!RegExp(r'^9\s?\d{8}$').hasMatch(text)) {
+      return 'Formato válido: 9 40503233';
+    }
+
+    return null;
+  }
+
+  String? validarPrecio(String? value) {
+    final text = value?.replaceAll('.', '').trim() ?? '';
+
+    if (text.isEmpty) {
+      return 'El precio es obligatorio';
+    }
+
+    if (!RegExp(r'^\d+$').hasMatch(text)) {
+      return 'El precio solo debe contener números';
+    }
+
+    if (int.parse(text) <= 0) {
+      return 'El precio debe ser mayor a 0';
+    }
+
+    return null;
+  }
+
+  void confirmarVenta() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final venta = VentaModel(
+      notebook: widget.notebook,
+      cliente: clienteController.text.trim(),
+      telefono: telefonoController.text.trim(),
+      precio: precioController.text.replaceAll('.', '').trim(),
+      formaPago: formaPago,
+      notas: notasController.text.trim(),
+      fechaVenta: DateTime.now(),
+    );
+
+    mockVentas.add(venta);
+
+    widget.onConfirmarVenta();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Venta registrada correctamente')),
+    );
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-
       appBar: AppBar(
         title: const Text('Registrar Venta', style: AppTextStyles.appBarTitle),
         backgroundColor: AppColors.white,
         elevation: AppDimensions.appBarElevation,
         iconTheme: const IconThemeData(color: AppColors.secondary),
       ),
-
       body: Form(
         key: _formKey,
-
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppDimensions.screenPadding),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
               _buildSectionTitle('Información del cliente'),
-
               const SizedBox(height: AppDimensions.spacingSmall),
-
               _buildTextField(
                 controller: clienteController,
-                label: 'Cliente',
+                label: 'Nombre completo',
                 hint: 'Ej: Juan Pérez',
                 icon: Icons.person_outline,
+                validator: validarNombreCompleto,
               ),
-
               _buildTextField(
                 controller: telefonoController,
                 label: 'Teléfono',
-                hint: 'Ej: +56 9 1234 5678',
+                hint: 'Ej: 9 40503233',
                 icon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
+                validator: validarTelefono,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9\s]')),
+                  LengthLimitingTextInputFormatter(10),
+                ],
               ),
-
               const SizedBox(height: AppDimensions.sectionSpacing),
-
               _buildSectionTitle('Información de venta'),
-
               const SizedBox(height: AppDimensions.spacingSmall),
-
               _buildReadOnlyField(
                 label: 'Notebook',
                 value:
                     '${widget.notebook.marca} ${widget.notebook.modelo} (${widget.notebook.codigo})',
                 icon: Icons.laptop_mac,
               ),
-
               _buildTextField(
                 controller: precioController,
                 label: 'Precio de venta',
-                hint: 'Ej: 650000',
+                hint: 'Ej: 650.000',
                 icon: Icons.attach_money,
                 keyboardType: TextInputType.number,
+                validator: validarPrecio,
+                inputFormatters: [PrecioInputFormatter()],
               ),
-
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: DropdownButtonFormField<String>(
@@ -152,10 +202,11 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                   },
                 ),
               ),
-
               TextFormField(
                 controller: notasController,
                 maxLines: 3,
+                maxLength: 180,
+                inputFormatters: [LengthLimitingTextInputFormatter(180)],
                 decoration:
                     _inputDecoration(
                       label: 'Notas opcionales',
@@ -163,11 +214,10 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                     ).copyWith(
                       hintText: 'Añadir notas...',
                       alignLabelWithHint: true,
+                      counterText: '',
                     ),
               ),
-
               const SizedBox(height: 28),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -207,20 +257,17 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
     required String label,
     required String hint,
     required IconData icon,
+    required String? Function(String?) validator,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Este campo es obligatorio';
-          }
-
-          return null;
-        },
+        inputFormatters: inputFormatters,
+        validator: validator,
         decoration: _inputDecoration(
           label: label,
           icon: icon,
@@ -268,6 +315,38 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
           width: AppDimensions.inputBorderWidth,
         ),
       ),
+    );
+  }
+}
+
+class PrecioInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (digits.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final reversed = digits.split('').reversed.toList();
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < reversed.length; i++) {
+      if (i > 0 && i % 3 == 0) {
+        buffer.write('.');
+      }
+
+      buffer.write(reversed[i]);
+    }
+
+    final formatted = buffer.toString().split('').reversed.join();
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
