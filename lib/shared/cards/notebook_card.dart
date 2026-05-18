@@ -62,8 +62,8 @@ class NotebookCard extends StatelessWidget {
                       ? 'Vendido'
                       : 'Ubicación: '
                             '${notebook.seccion} - '
-                            'E${notebook.estante} - '
-                            'N${notebook.nivel}',
+                            '${notebook.estante} - '
+                            '${notebook.nivel}',
                   style: AppTextStyles.body,
                 ),
               ],

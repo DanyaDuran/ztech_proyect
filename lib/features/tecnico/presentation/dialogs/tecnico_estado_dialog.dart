@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
+import '../../../bodega/data/mock_status_history.dart';
 import '../../../bodega/domain/notebook_model.dart';
 import '../../../bodega/domain/status_history_model.dart';
-import '../../../bodega/data/mock_status_history.dart';
 
 class TecnicoEstadoDialog extends StatefulWidget {
   final NotebookModel notebook;
@@ -17,121 +18,237 @@ class TecnicoEstadoDialog extends StatefulWidget {
 }
 
 class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
-  final TextEditingController diagnosticoController = TextEditingController();
+  final diagnosticoController = TextEditingController();
 
-  final TextEditingController observacionesController = TextEditingController();
+  final accionesController = TextEditingController();
+
+  final observacionesController = TextEditingController();
 
   late String selectedStatus;
+
+  bool get isPendiente =>
+      widget.notebook.estado.toLowerCase() == 'pendiente de revisión';
+
+  bool get isEnReparacion =>
+      widget.notebook.estado.toLowerCase() == 'en reparación' ||
+      widget.notebook.estado.toLowerCase() == 'en reparacion';
 
   @override
   void initState() {
     super.initState();
 
-    selectedStatus = widget.notebook.estado.toLowerCase() == 'en reparación'
-        ? 'Disponible'
-        : 'En reparación';
+    selectedStatus = isPendiente ? 'En reparación' : 'Disponible';
+  }
+
+  @override
+  void dispose() {
+    diagnosticoController.dispose();
+    accionesController.dispose();
+    observacionesController.dispose();
+
+    super.dispose();
+  }
+
+  Widget buildFixedTextArea({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+  }) {
+    return SizedBox(
+      height: 95,
+      child: TextField(
+        controller: controller,
+        maxLines: 3,
+        minLines: 3,
+        maxLength: 180,
+        keyboardType: TextInputType.multiline,
+        textInputAction: TextInputAction.newline,
+        inputFormatters: [LengthLimitingTextInputFormatter(180)],
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          alignLabelWithHint: true,
+          border: const OutlineInputBorder(),
+          counterText: '',
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void guardarCambio() {
+    if (isPendiente && diagnosticoController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debes ingresar un diagnóstico inicial')),
+      );
+      return;
+    }
+
+    if (isEnReparacion && accionesController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debes ingresar las acciones realizadas')),
+      );
+      return;
+    }
+
+    final estadoAnterior = widget.notebook.estado;
+
+    widget.notebook.estado = selectedStatus;
+
+    final history = StatusHistoryModel(
+      codigoNotebook: widget.notebook.codigo,
+      estadoAnterior: estadoAnterior,
+      estadoNuevo: selectedStatus,
+      usuarioResponsable: 'Técnico',
+      fecha: DateTime.now(),
+      diagnostico: diagnosticoController.text.trim(),
+      accionesRealizadas: accionesController.text.trim(),
+      observacion: isPendiente
+          ? 'Diagnóstico inicial registrado'
+          : observacionesController.text.trim().isEmpty
+          ? 'Cambio de estado realizado por técnico'
+          : observacionesController.text.trim(),
+    );
+
+    mockStatusHistory.add(history);
+
+    Navigator.pop(context, true);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isPendiente
+              ? 'Notebook enviado a reparación'
+              : 'Estado actualizado correctamente',
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    final title = isPendiente
+        ? 'Iniciar revisión técnica'
+        : 'Actualizar estado técnico';
+
+    return Dialog(
       backgroundColor: AppColors.white,
 
-      title: const Text('Revisión técnica', style: AppTextStyles.sectionTitle),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
 
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: diagnosticoController,
-              decoration: const InputDecoration(
-                labelText: 'Diagnóstico técnico',
-              ),
-            ),
+      child: SizedBox(
+        width: 420,
+        height: isPendiente ? 280 : 430,
 
-            const SizedBox(height: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
 
-            TextField(
-              controller: observacionesController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Obervaciones/Acciones',
-              ),
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
 
-            const SizedBox(height: 16),
+            children: [
+              Text(title, style: AppTextStyles.sectionTitle),
 
-            DropdownButtonFormField<String>(
-              value: selectedStatus,
-              items: widget.notebook.estado.toLowerCase() == 'en reparación'
-                  ? const [
-                      DropdownMenuItem(
-                        value: 'Disponible',
-                        child: Text('Disponible'),
-                      ),
-                      DropdownMenuItem(value: 'Merma', child: Text('Merma')),
-                    ]
-                  : const [
-                      DropdownMenuItem(
-                        value: 'Disponible',
-                        child: Text('Disponible'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'En reparación',
-                        child: Text('En reparación'),
-                      ),
-                      DropdownMenuItem(value: 'Merma', child: Text('Merma')),
+              const SizedBox(height: 16),
+
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      if (isPendiente) ...[
+                        buildFixedTextArea(
+                          controller: diagnosticoController,
+                          label: 'Diagnóstico inicial',
+                          hint: 'Ej: No enciende, posible falla de placa',
+                        ),
+                      ],
+
+                      if (isEnReparacion) ...[
+                        buildFixedTextArea(
+                          controller: accionesController,
+                          label: 'Acciones realizadas',
+                          hint: 'Ej: Cambio de disco SSD y limpieza interna',
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        buildFixedTextArea(
+                          controller: observacionesController,
+                          label: 'Observaciones técnicas',
+                          hint: 'Ej: Equipo queda funcionando correctamente',
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        DropdownButtonFormField<String>(
+                          value: selectedStatus,
+
+                          decoration: const InputDecoration(
+                            labelText: 'Nuevo estado',
+                            border: OutlineInputBorder(),
+                          ),
+
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Disponible',
+                              child: Text('Disponible'),
+                            ),
+
+                            DropdownMenuItem(
+                              value: 'En reparación',
+                              child: Text('En reparación'),
+                            ),
+
+                            DropdownMenuItem(
+                              value: 'Merma',
+                              child: Text('Merma'),
+                            ),
+                          ],
+
+                          onChanged: (value) {
+                            setState(() {
+                              selectedStatus = value!;
+                            });
+                          },
+                        ),
+                      ],
                     ],
-              onChanged: (value) {
-                setState(() {
-                  selectedStatus = value!;
-                });
-              },
-              decoration: const InputDecoration(labelText: 'Nuevo estado'),
-            ),
-          ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+
+                    child: const Text('Cancelar'),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+
+                    onPressed: guardarCambio,
+
+                    child: const Text('Guardar', style: AppTextStyles.button),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Cancelar'),
-        ),
-
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-          onPressed: () {
-            final estadoAnterior = widget.notebook.estado;
-
-            widget.notebook.estado = selectedStatus;
-
-            // crear historial
-            final history = StatusHistoryModel(
-              codigoNotebook: widget.notebook.codigo,
-              estadoAnterior: estadoAnterior,
-              estadoNuevo: selectedStatus,
-              usuarioResponsable: 'Técnico',
-              fecha: DateTime.now(),
-
-              diagnostico: diagnosticoController.text,
-              accionesRealizadas: observacionesController.text,
-              observacion: 'Cambio de estado realizado por técnico',
-            );
-            mockStatusHistory.add(history);
-
-            Navigator.pop(context);
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Estado actualizado correctamente')),
-            );
-          },
-          child: const Text('Guardar', style: AppTextStyles.button),
-        ),
-      ],
     );
   }
 }

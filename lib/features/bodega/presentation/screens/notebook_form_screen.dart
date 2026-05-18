@@ -83,6 +83,11 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
       return;
     }
 
+    if (!_hasSelectedTechnicalSpecs()) {
+      _validateDropdownsBeforeSave();
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -92,8 +97,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
       marca: marca ?? '',
       linea: linea ?? '',
       modelo: modeloController.text.trim(),
-      procesador:
-          '${familiaProcesador ?? ''} ${serieProcesador ?? ''}'.trim(),
+      procesador: '${familiaProcesador ?? ''} ${serieProcesador ?? ''}'.trim(),
       generacion: generacion ?? '',
       ram: ram ?? '',
       almacenamiento: almacenamiento ?? '',
@@ -108,23 +112,17 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
     );
 
     try {
-      await _notebookRepository.addNotebook(notebook);
-
       if (mounted) {
         Navigator.pop(context, notebook);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Notebook registrado correctamente'),
-          ),
+          const SnackBar(content: Text('Notebook registrado correctamente')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al guardar el notebook'),
-          ),
+          const SnackBar(content: Text('Error al guardar el notebook')),
         );
       }
     } finally {
@@ -134,30 +132,6 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
         });
       }
     }
-  }
-
-  Widget _buildSectionTitle(String title, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16, top: 8),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: AppColors.primary,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.secondary,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   bool _hasSelectedTechnicalSpecs() {
@@ -175,13 +149,31 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
   }
 
   void _validateDropdownsBeforeSave() {
-    if (!_hasSelectedTechnicalSpecs()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Completa todos los campos desplegables obligatorios'),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Completa todos los campos desplegables obligatorios'),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, top: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.primary, size: 20),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.secondary,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -195,19 +187,14 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
         elevation: 0,
         title: const Text(
           'Registrar notebook',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
 
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -253,17 +240,14 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
               CustomTextField(
                 controller: modeloController,
                 label: 'Modelo específico',
-                hint: 'Ej: T14',
+                hint: 'Ej: T123456',
                 icon: Icons.laptop_mac,
-                validator: AppValidators.modeloNotebook,
+                validator: AppValidators.modeloSerie,
               ),
 
               const Divider(height: 32),
 
-              _buildSectionTitle(
-                'Especificaciones Técnicas',
-                Icons.memory,
-              ),
+              _buildSectionTitle('Especificaciones Técnicas', Icons.memory),
 
               CustomDropdownField(
                 label: 'Familia CPU',
@@ -402,26 +386,22 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
               const Divider(height: 32),
 
-              _buildSectionTitle(
-                'Detalles Adicionales',
-                Icons.notes,
-              ),
+              _buildSectionTitle('Detalles Adicionales', Icons.notes),
 
               TextFormField(
                 controller: descripcionProblemaController,
                 maxLines: 3,
-                validator: (val) => AppValidators.descripcionOpcional(
-                  val,
-                  'La descripción',
-                ),
+                validator: (val) =>
+                    AppValidators.descripcionOpcional(val, 'La descripción'),
                 textInputAction: TextInputAction.newline,
-                decoration: customInputDecoration(
-                  label: 'Descripción del problema',
-                  icon: Icons.report_problem_outlined,
-                ).copyWith(
-                  hintText: 'Ej: No enciende al conectar cargador',
-                  alignLabelWithHint: true,
-                ),
+                decoration:
+                    customInputDecoration(
+                      label: 'Descripción del problema',
+                      icon: Icons.report_problem_outlined,
+                    ).copyWith(
+                      hintText: 'Ej: No enciende al conectar cargador',
+                      alignLabelWithHint: true,
+                    ),
               ),
 
               const SizedBox(height: 16),
@@ -429,18 +409,17 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
               TextFormField(
                 controller: observacionesBodegaController,
                 maxLines: 3,
-                validator: (val) => AppValidators.descripcionOpcional(
-                  val,
-                  'La observación',
-                ),
+                validator: (val) =>
+                    AppValidators.descripcionOpcional(val, 'La observación'),
                 textInputAction: TextInputAction.newline,
-                decoration: customInputDecoration(
-                  label: 'Observaciones de bodega',
-                  icon: Icons.notes_outlined,
-                ).copyWith(
-                  hintText: 'Ej: Equipo ingresa sin batería',
-                  alignLabelWithHint: true,
-                ),
+                decoration:
+                    customInputDecoration(
+                      label: 'Observaciones de bodega',
+                      icon: Icons.notes_outlined,
+                    ).copyWith(
+                      hintText: 'Ej: Equipo ingresa sin batería',
+                      alignLabelWithHint: true,
+                    ),
               ),
 
               const SizedBox(height: 40),
@@ -456,12 +435,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: _isLoading
-                      ? null
-                      : () {
-                          _validateDropdownsBeforeSave();
-                          saveNotebook();
-                        },
+                  onPressed: _isLoading ? null : saveNotebook,
                   icon: _isLoading
                       ? const SizedBox(
                           width: 24,
