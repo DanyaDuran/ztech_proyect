@@ -184,7 +184,7 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                         const SizedBox(height: 16),
 
                         DropdownButtonFormField<String>(
-                          value: selectedStatus,
+                          initialValue: selectedStatus,
 
                           decoration: const InputDecoration(
                             labelText: 'Nuevo estado',

@@ -178,7 +178,7 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: DropdownButtonFormField<String>(
-                  value: formaPago,
+                  initialValue: formaPago,
                   dropdownColor: AppColors.white,
                   decoration: _inputDecoration(
                     label: 'Forma de pago',

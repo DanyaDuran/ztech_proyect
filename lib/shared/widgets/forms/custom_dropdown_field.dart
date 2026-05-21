@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../styles/input_decorations.dart';
+
 import '../../../core/theme/app_colors.dart';
+import '../../styles/input_decorations.dart';
 
 class CustomDropdownField extends StatelessWidget {
   final String label;
@@ -27,7 +28,7 @@ class CustomDropdownField extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: value,
         isExpanded: true,
         dropdownColor: Colors.white,
         style: const TextStyle(
@@ -38,22 +39,26 @@ class CustomDropdownField extends StatelessWidget {
         decoration: customInputDecoration(
           label: label,
           icon: icon,
-        ).copyWith(
-          hintText: hint,
-          alignLabelWithHint: true,
-        ),
-        items: items.map((item) {
-          return DropdownMenuItem(
-            value: item,
-            child: Text(
-              item,
-              overflow: TextOverflow.ellipsis,
-            ),
-          );
-        }).toList(),
+        ).copyWith(hintText: hint, alignLabelWithHint: true),
+        items: items
+            .map(
+              (item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(item, overflow: TextOverflow.ellipsis),
+              ),
+            )
+            .toList(),
         onChanged: onChanged,
-        validator: validator ?? (val) => val == null || val.isEmpty ? 'Obligatorio' : null,
+        validator: validator ?? _defaultValidator,
       ),
     );
+  }
+
+  static String? _defaultValidator(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Obligatorio';
+    }
+
+    return null;
   }
 }

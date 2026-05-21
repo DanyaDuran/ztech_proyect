@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/helpers/notebook_status_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../bodega/data/mock_notebooks.dart';
+import '../../../../shared/widgets/dashboard/dashboard_activity_item.dart';
+import '../../../../shared/widgets/dashboard/dashboard_card.dart';
+import '../../../../shared/widgets/dashboard/dashboard_legend_item.dart';
+import '../../data/dashboard_repository.dart';
 
 class DashboardMiddleSection extends StatelessWidget {
   final VoidCallback onShowMessage;
@@ -12,7 +16,7 @@ class DashboardMiddleSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDesktop = MediaQuery.of(context).size.width > 800;
+    final isDesktop = MediaQuery.of(context).size.width > 800;
 
     if (isDesktop) {
       return Row(
@@ -35,42 +39,23 @@ class DashboardMiddleSection extends StatelessWidget {
   }
 
   Widget _buildPieChartCard() {
-    final int total = mockNotebooks.length;
+    final stats = DashboardRepository.getStats();
+    final total = stats.fold<int>(0, (sum, stat) => sum + stat.count);
 
-    final int disponibles = mockNotebooks
-        .where((n) => n.estado == 'Disponible')
-        .length;
-
-    final int reparacion = mockNotebooks
-        .where((n) => n.estado == 'En reparación')
-        .length;
-
-    final int vendidos = mockNotebooks
-        .where((n) => n.estado == 'Vendido')
-        .length;
-
-    final int merma = mockNotebooks.where((n) => n.estado == 'Merma').length;
-
-    String porcentaje(int value) {
-      if (total == 0) {
-        return '0';
-      }
-
-      return ((value / total) * 100).toStringAsFixed(0);
-    }
-
-    double totalGrafico = (disponibles + reparacion + vendidos + merma)
-        .toDouble();
-
+    double totalGrafico = total.toDouble();
     if (totalGrafico == 0) {
       totalGrafico = 1;
     }
 
-    final double stop1 = disponibles / totalGrafico;
-    final double stop2 = stop1 + (reparacion / totalGrafico);
-    final double stop3 = stop2 + (vendidos / totalGrafico);
+    final disponibles = stats[0].count;
+    final reparacion = stats[1].count;
+    final vendidos = stats[2].count;
 
-    return _DashboardCard(
+    final stop1 = disponibles / totalGrafico;
+    final stop2 = stop1 + (reparacion / totalGrafico);
+    final stop3 = stop2 + (vendidos / totalGrafico);
+
+    return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -88,15 +73,15 @@ class DashboardMiddleSection extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: SweepGradient(
                     stops: [0.0, stop1, stop1, stop2, stop2, stop3, stop3, 1.0],
-                    colors: const [
-                      AppColors.statusAvailable,
-                      AppColors.statusAvailable,
-                      AppColors.statusRepair,
-                      AppColors.statusRepair,
-                      AppColors.statusSold,
-                      AppColors.statusSold,
-                      AppColors.statusDiscarded,
-                      AppColors.statusDiscarded,
+                    colors: [
+                      stats[0].iconColor,
+                      stats[0].iconColor,
+                      stats[1].iconColor,
+                      stats[1].iconColor,
+                      stats[2].iconColor,
+                      stats[2].iconColor,
+                      stats[3].iconColor,
+                      stats[3].iconColor,
                     ],
                   ),
                 ),
@@ -128,31 +113,19 @@ class DashboardMiddleSection extends StatelessWidget {
 
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _LegendItem(
-                    color: AppColors.statusAvailable,
-                    title: 'Disponibles',
-                    subtitle: '$disponibles (${porcentaje(disponibles)}%)',
-                  ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
-                  _LegendItem(
-                    color: AppColors.statusRepair,
-                    title: 'En reparación',
-                    subtitle: '$reparacion (${porcentaje(reparacion)}%)',
-                  ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
-                  _LegendItem(
-                    color: AppColors.statusSold,
-                    title: 'Vendidos',
-                    subtitle: '$vendidos (${porcentaje(vendidos)}%)',
-                  ),
-                  const SizedBox(height: AppDimensions.spacingMedium),
-                  _LegendItem(
-                    color: AppColors.statusDiscarded,
-                    title: 'Merma',
-                    subtitle: '$merma (${porcentaje(merma)}%)',
-                  ),
-                ],
+                children: stats.map((stat) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      bottom: AppDimensions.spacingMedium,
+                    ),
+                    child: DashboardLegendItem(
+                      color: stat.iconColor,
+                      title: stat.title,
+                      subtitle:
+                          '${stat.count} (${NotebookStatusHelper.percentage(stat.count, total)}%)',
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
@@ -162,7 +135,9 @@ class DashboardMiddleSection extends StatelessWidget {
   }
 
   Widget _buildRecentActivityCard() {
-    return _DashboardCard(
+    final activities = DashboardRepository.getActivities();
+
+    return DashboardCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -183,164 +158,25 @@ class DashboardMiddleSection extends StatelessWidget {
           ),
 
           const SizedBox(height: AppDimensions.inputSpacing),
+          ...activities.asMap().entries.map((entry) {
+            final index = entry.key;
+            final activity = entry.value;
 
-          const _ActivityItem(
-            icon: Icons.laptop_chromebook,
-            iconColor: AppColors.statusAvailable,
-            title: 'Notebook ASUS X515 ingresado a bodega',
-            subtitle: 'Por Juan.',
-            time: 'Hoy\n10:30',
-          ),
-
-          const Divider(height: 24),
-
-          const _ActivityItem(
-            icon: Icons.build_outlined,
-            iconColor: AppColors.statusRepair,
-            title: 'Notebook Lenovo L14 en reparación',
-            subtitle: 'Por Técnico 1',
-            time: 'Hoy\n09:15',
-          ),
-
-          const Divider(height: 24),
-
-          const _ActivityItem(
-            icon: Icons.shopping_cart_outlined,
-            iconColor: AppColors.statusSold,
-            title: 'Venta realizada - HP 240 G8',
-            subtitle: 'Por Giuliana R.',
-            time: 'Ayer\n16:45',
-          ),
-
-          const Divider(height: 24),
-
-          const _ActivityItem(
-            icon: Icons.warning_amber_rounded,
-            iconColor: AppColors.statusDiscarded,
-            title: 'Notebook Dell Latitude dado de baja',
-            subtitle: 'Por Aaron M.',
-            time: 'Ayer\n11:20',
-          ),
+            return Column(
+              children: [
+                DashboardActivityItem(
+                  icon: activity.icon,
+                  iconColor: activity.iconColor,
+                  title: activity.title,
+                  subtitle: activity.subtitle,
+                  time: activity.time,
+                ),
+                if (index != activities.length - 1) const Divider(height: 24),
+              ],
+            );
+          }),
         ],
       ),
-    );
-  }
-}
-
-class _DashboardCard extends StatelessWidget {
-  final Widget child;
-
-  const _DashboardCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.sectionSpacing),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
-class _LegendItem extends StatelessWidget {
-  final Color color;
-  final String title;
-  final String subtitle;
-
-  const _LegendItem({
-    required this.color,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-
-        const SizedBox(width: AppDimensions.spacingSmall),
-
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: AppTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            Text(subtitle, style: AppTextStyles.subtitle),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _ActivityItem extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final String time;
-
-  const _ActivityItem({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.time,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppDimensions.spacingSmall),
-          decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.12),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: iconColor, size: AppDimensions.iconMedium),
-        ),
-
-        const SizedBox(width: AppDimensions.inputSpacing),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: AppTextStyles.cardTitle.copyWith(fontSize: 14),
-              ),
-              const SizedBox(height: 2),
-              Text(subtitle, style: AppTextStyles.subtitle),
-            ],
-          ),
-        ),
-
-        const SizedBox(width: AppDimensions.spacingSmall),
-
-        Text(time, textAlign: TextAlign.right, style: AppTextStyles.subtitle),
-      ],
     );
   }
 }

@@ -28,12 +28,11 @@ class _TecnicoHomeScreenState extends State<TecnicoHomeScreen> {
   void initState() {
     super.initState();
 
-    notebooksPendientes = mockNotebooks
-        .where(
-          (notebook) =>
-              notebook.estado.toLowerCase() == 'pendiente de revisión',
-        )
-        .toList();
+    notebooksPendientes = mockNotebooks.where((notebook) {
+      final estado = notebook.estado.toLowerCase();
+
+      return estado == 'pendiente de revisión';
+    }).toList();
 
     filteredNotebooks = notebooksPendientes;
   }
