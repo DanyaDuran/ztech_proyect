@@ -221,7 +221,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
                   const SizedBox(height: AppDimensions.inputSpacing),
 
                   DropdownButtonFormField<String>(
-                    value: _rolSeleccionado,
+                    initialValue: _rolSeleccionado,
 
                     decoration: const InputDecoration(
                       labelText: 'Rol',
@@ -247,7 +247,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
 
                     value: _activo,
 
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
 
                     title: const Text(
                       'Usuario activo',

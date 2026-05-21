@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/helpers/notebook_status_helper.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -11,9 +13,10 @@ class StockAlert extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int disponibles = mockNotebooks
-        .where((n) => n.estado == 'Disponible')
-        .length;
+    final int disponibles = NotebookStatusHelper.countByStatus(
+      mockNotebooks,
+      NotebookStatusHelper.disponible,
+    );
 
     if (disponibles >= 5) {
       return const SizedBox.shrink();
@@ -24,9 +27,11 @@ class StockAlert extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
         decoration: BoxDecoration(
-          color: AppColors.statusRepair.withOpacity(0.12),
+          color: AppColors.statusRepair.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-          border: Border.all(color: AppColors.statusRepair.withOpacity(0.45)),
+          border: Border.all(
+            color: AppColors.statusRepair.withValues(alpha: 0.45),
+          ),
         ),
         child: Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,

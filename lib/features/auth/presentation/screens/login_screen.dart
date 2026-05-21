@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final user = mockUsers.where((user) => user.correo == email).firstOrNull;
 
     if (user == null) {
-      _showMessage('El correo ingresado no existe');
+      _showMessage('Correo o contraseña incorrectos');
       return;
     }
 
@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (user.password != password) {
-      _showMessage('La contraseña es incorrecta');
+      _showMessage('Correo o contraseña incorrecto');
       return;
     }
 
@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
+                  color: Colors.black.withValues(alpha: 0.18),
                   blurRadius: 25,
                   offset: const Offset(0, 12),
                 ),
