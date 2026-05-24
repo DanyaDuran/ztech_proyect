@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_dimensions.dart';
-import '../../core/theme/app_text_styles.dart';
-import '../../core/utils/notebook_utils.dart';
-import '../../features/bodega/domain/notebook_model.dart';
-import '../../features/bodega/presentation/screens/notebook_detail_screen.dart';
-import '../components/estado_badge.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/core/utils/notebook_utils.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
+import 'package:ztech_flutter__app/features/bodega/presentation/screens/notebook_detail_screen.dart';
+import 'package:ztech_flutter__app/shared/components/estado_badge.dart';
 
 class NotebookCard extends StatelessWidget {
   final NotebookModel notebook;

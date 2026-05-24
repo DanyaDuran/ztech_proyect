@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_dimensions.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
 
 class DashboardCard extends StatelessWidget {
   final Widget child;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../shared/widgets/dashboard/dashboard_stat_card.dart';
-import '../../data/dashboard_repository.dart';
+import 'package:ztech_flutter__app/core/theme/app_dimensions.dart';
+import 'package:ztech_flutter__app/shared/widgets/dashboard/dashboard_stat_card.dart';
+import 'package:ztech_flutter__app/features/dashboard/data/dashboard_repository.dart';
 
 class DashboardStats extends StatelessWidget {
   const DashboardStats({super.key});

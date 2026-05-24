@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/utils/notebook_utils.dart';
-import '../../../../shared/components/estado_badge.dart';
-import '../../../bodega/data/mock_notebooks.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/core/utils/notebook_utils.dart';
+import 'package:ztech_flutter__app/shared/components/estado_badge.dart';
+import 'package:ztech_flutter__app/features/bodega/data/mock_notebooks.dart';
 
 class RecentNotebooksTable extends StatelessWidget {
   const RecentNotebooksTable({super.key});

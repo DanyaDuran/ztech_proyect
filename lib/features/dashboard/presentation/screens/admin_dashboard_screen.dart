@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
-import '../widgets/dashboard_stats.dart';
-import '../widgets/stock_alert.dart';
-import '../widgets/dashboard_middle_section.dart';
-import '../widgets/recent_notebooks_table.dart';
-import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../reportes/presentation/screens/reportes_screen.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/shared/widgets/app_bar/custom_app_bar.dart';
+import 'package:ztech_flutter__app/shared/widgets/sidebar/sidebar_menu.dart';
+import 'package:ztech_flutter__app/features/dashboard/presentation/widgets/widgets.dart';
+import 'package:ztech_flutter__app/features/reportes/presentation/screens/reportes_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
 
-import '../../../auth/domain/user_model.dart';
+import 'package:ztech_flutter__app/features/auth/domain/user_model.dart';
 
 class UserFormScreen extends StatefulWidget {
   final UserModel? userToEdit;
