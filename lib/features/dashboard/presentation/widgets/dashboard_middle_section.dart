@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/helpers/notebook_status_helper.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../shared/widgets/dashboard/dashboard_activity_item.dart';
-import '../../../../shared/widgets/dashboard/dashboard_card.dart';
-import '../../../../shared/widgets/dashboard/dashboard_legend_item.dart';
-import '../../data/dashboard_repository.dart';
+import 'package:ztech_flutter__app/core/helpers/notebook_status_helper.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/shared/widgets/dashboard/widgets.dart';
+import 'package:ztech_flutter__app/features/dashboard/data/dashboard_repository.dart';
 
 class DashboardMiddleSection extends StatelessWidget {
   final VoidCallback onShowMessage;

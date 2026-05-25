@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import 'package:ztech_flutter__app/core/theme/app_colors.dart';
 
 class PrimaryActionButton extends StatelessWidget {
   final bool isLoading;

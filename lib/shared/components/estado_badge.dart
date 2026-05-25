@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_dimensions.dart';
-import '../../core/theme/app_text_styles.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
 
 class EstadoBadge extends StatelessWidget {
   final String status;

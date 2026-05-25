@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
-import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
-import '../../../auth/domain/user_model.dart';
-import '../../data/user_repository.dart';
-import '../../domain/user_service.dart';
-import '../widgets/user_table_header.dart';
-import '../widgets/user_table_row.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/shared/widgets/app_bar/custom_app_bar.dart';
+import 'package:ztech_flutter__app/shared/widgets/sidebar/sidebar_menu.dart';
+import 'package:ztech_flutter__app/features/auth/domain/user_model.dart';
+import 'package:ztech_flutter__app/features/admin/data/user_repository.dart';
+import 'package:ztech_flutter__app/features/admin/domain/user_service.dart';
+import 'package:ztech_flutter__app/features/admin/presentation/widgets/user_table_header.dart';
+import 'package:ztech_flutter__app/features/admin/presentation/widgets/user_table_row.dart';
 import 'user_form_screen.dart';
 
 class UserManagementScreen extends StatefulWidget {

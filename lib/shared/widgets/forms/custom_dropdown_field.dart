@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../styles/input_decorations.dart';
+import 'package:ztech_flutter__app/core/theme/app_colors.dart';
+import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
 
 class CustomDropdownField extends StatelessWidget {
   final String label;

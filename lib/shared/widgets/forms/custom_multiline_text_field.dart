@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../styles/input_decorations.dart';
+import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
 
 class CustomMultilineTextField extends StatelessWidget {
   final String label;

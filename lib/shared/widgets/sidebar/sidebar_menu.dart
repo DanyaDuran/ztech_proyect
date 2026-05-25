@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/router/routes.dart';
-import '../../../core/auth/role_permissions.dart';
-import '../../../core/session/current_user.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_dimensions.dart';
-import '../../../core/theme/app_text_styles.dart';
+import 'package:ztech_flutter__app/app/router/routes.dart';
+import 'package:ztech_flutter__app/core/auth/role_permissions.dart';
+import 'package:ztech_flutter__app/core/session/current_user.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
 
 class SidebarMenu extends StatelessWidget {
   final String currentRoute;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../styles/input_decorations.dart';
+import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -30,10 +30,7 @@ class CustomTextField extends StatelessWidget {
         decoration: customInputDecoration(
           label: label,
           icon: icon,
-        ).copyWith(
-          hintText: hint,
-          alignLabelWithHint: true,
-        ),
+        ).copyWith(hintText: hint, alignLabelWithHint: true),
       ),
     );
   }
