@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "927800369233",
+    "project_id": "ztech-app-84d19",
+    "storage_bucket": "ztech-app-84d19.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:927800369233:android:6143e5ea8ed75643899870",
+        "android_client_info": {
+          "package_name": "cl.ztech.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV6JN4IKhCqr3yhsfjA6iqKNIxR8KFkxY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
