@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:ztech_flutter__app/core/theme/theme.dart';
 
 import 'package:ztech_flutter__app/features/auth/domain/user_model.dart';
+import 'package:ztech_flutter__app/features/auth/data/services/user_firestore_service.dart';
+import 'package:ztech_flutter__app/features/admin/domain/user_service.dart';
 
 class UserFormScreen extends StatefulWidget {
   final UserModel? userToEdit;
@@ -17,14 +20,15 @@ class _UserFormScreenState extends State<UserFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nombreController = TextEditingController();
-
   final TextEditingController _correoController = TextEditingController();
-
   final TextEditingController _passwordController = TextEditingController();
 
-  String _rolSeleccionado = 'admin';
+  final UserFirestoreService _firestoreService = UserFirestoreService();
+  final UserService _userService = UserService();
 
+  String _rolSeleccionado = 'admin';
   bool _activo = true;
+  bool _isLoading = false;
 
   final List<String> _rolesPermitidos = [
     'admin',
@@ -33,19 +37,16 @@ class _UserFormScreenState extends State<UserFormScreen> {
     'ventas',
   ];
 
+  bool get isEditing => widget.userToEdit != null;
+
   @override
   void initState() {
     super.initState();
 
-    if (widget.userToEdit != null) {
+    if (isEditing) {
       _nombreController.text = widget.userToEdit!.nombre;
-
       _correoController.text = widget.userToEdit!.correo;
-
-      _passwordController.text = widget.userToEdit!.password;
-
       _rolSeleccionado = widget.userToEdit!.rol;
-
       _activo = widget.userToEdit!.activo;
     }
   }
@@ -53,41 +54,96 @@ class _UserFormScreenState extends State<UserFormScreen> {
   @override
   void dispose() {
     _nombreController.dispose();
-
     _correoController.dispose();
-
     _passwordController.dispose();
-
     super.dispose();
   }
 
-  void _guardarUsuario() {
-    if (!_formKey.currentState!.validate()) {
+  Future<void> _guardarUsuario() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final nombre = _nombreController.text.trim();
+    final correo = _correoController.text.trim();
+    final password = _passwordController.text.trim();
+
+    final validation = _userService.validateUser(
+      nombre: nombre,
+      correo: correo,
+      rol: _rolSeleccionado,
+      password: password,
+      isEditing: isEditing,
+    );
+
+    if (validation != null) {
+      _showMessage(validation);
       return;
     }
 
-    final nuevoUsuario = UserModel(
-      nombre: _nombreController.text.trim(),
+    setState(() {
+      _isLoading = true;
+    });
 
-      correo: _correoController.text.trim(),
+    try {
+      if (isEditing) {
+        final updatedUser = UserModel(
+          id: widget.userToEdit!.id,
+          nombre: nombre,
+          correo: correo,
+          rol: _rolSeleccionado,
+          activo: _activo,
+        );
 
-      password: _passwordController.text.trim(),
+        await _firestoreService.actualizarUsuario(updatedUser);
 
-      rol: _rolSeleccionado,
+        if (!mounted) return;
+        Navigator.pop(context, true);
+        return;
+      }
 
-      activo: _activo,
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: correo, password: password);
+
+      final uid = credential.user!.uid;
+
+      await _firestoreService.crearUsuarioFirestore(
+        uid: uid,
+        nombre: nombre,
+        correo: correo,
+        rol: _rolSeleccionado,
+        activo: _activo,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        _showMessage('El correo ya existe');
+      } else if (e.code == 'weak-password') {
+        _showMessage('La contraseña es muy débil');
+      } else {
+        _showMessage('No se pudo crear el usuario');
+      }
+    } catch (e) {
+      _showMessage('Ocurrió un error al guardar el usuario');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
-
-    Navigator.pop(context, nuevoUsuario);
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isEditing = widget.userToEdit != null;
-
     return Scaffold(
       backgroundColor: AppColors.background,
-
       appBar: AppBar(
         backgroundColor: AppColors.secondary,
 
@@ -150,25 +206,13 @@ class _UserFormScreenState extends State<UserFormScreen> {
 
                       prefixIcon: Icon(Icons.person_outline),
                     ),
-
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Ingrese un nombre';
-                      }
-
-                      if (value.trim().length < 3) {
-                        return 'Mínimo 3 caracteres';
-                      }
-
-                      return null;
-                    },
                   ),
 
                   const SizedBox(height: AppDimensions.inputSpacing),
 
                   TextFormField(
                     controller: _correoController,
-
+                    enabled: !isEditing,
                     keyboardType: TextInputType.emailAddress,
 
                     decoration: const InputDecoration(
@@ -176,48 +220,20 @@ class _UserFormScreenState extends State<UserFormScreen> {
 
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
-
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Ingrese un correo';
-                      }
-
-                      if (!value.contains('@')) {
-                        return 'Correo inválido';
-                      }
-
-                      return null;
-                    },
                   ),
 
                   const SizedBox(height: AppDimensions.inputSpacing),
-
-                  TextFormField(
-                    controller: _passwordController,
-
-                    obscureText: true,
-
-                    decoration: const InputDecoration(
-                      labelText: 'Contraseña',
-
-                      prefixIcon: Icon(Icons.lock_outline),
+                  if (!isEditing)
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Contraseña',
+                        prefixIcon: Icon(Icons.lock_outline),
+                      ),
                     ),
-
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Ingrese una contraseña';
-                      }
-
-                      if (value.trim().length < 6) {
-                        return 'Mínimo 6 caracteres';
-                      }
-
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: AppDimensions.inputSpacing),
-
+                  if (!isEditing)
+                    const SizedBox(height: AppDimensions.inputSpacing),
                   DropdownButtonFormField<String>(
                     initialValue: _rolSeleccionado,
 
@@ -266,10 +282,14 @@ class _UserFormScreenState extends State<UserFormScreen> {
                     width: double.infinity,
 
                     child: ElevatedButton.icon(
-                      onPressed: _guardarUsuario,
-
-                      icon: const Icon(Icons.save_outlined),
-
+                      onPressed: _isLoading ? null : _guardarUsuario,
+                      icon: _isLoading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.save_outlined),
                       label: Text(
                         isEditing ? 'Guardar cambios' : 'Guardar usuario',
                       ),
