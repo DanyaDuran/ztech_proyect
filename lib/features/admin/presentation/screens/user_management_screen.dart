@@ -4,10 +4,10 @@ import 'package:ztech_flutter__app/core/theme/theme.dart';
 import 'package:ztech_flutter__app/shared/widgets/app_bar/custom_app_bar.dart';
 import 'package:ztech_flutter__app/shared/widgets/sidebar/sidebar_menu.dart';
 import 'package:ztech_flutter__app/features/auth/domain/user_model.dart';
-import 'package:ztech_flutter__app/features/admin/data/user_repository.dart';
-import 'package:ztech_flutter__app/features/admin/domain/user_service.dart';
+import 'package:ztech_flutter__app/features/auth/data/services/user_firestore_service.dart';
 import 'package:ztech_flutter__app/features/admin/presentation/widgets/user_table_header.dart';
 import 'package:ztech_flutter__app/features/admin/presentation/widgets/user_table_row.dart';
+
 import 'user_form_screen.dart';
 
 class UserManagementScreen extends StatefulWidget {
@@ -18,116 +18,72 @@ class UserManagementScreen extends StatefulWidget {
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
-  late UserRepository repository;
-  late UserService service;
+  final UserFirestoreService _userService = UserFirestoreService();
+  final TextEditingController _searchController = TextEditingController();
 
-  List<UserModel> users = [];
+  String _selectedRole = 'todos';
 
   @override
-  void initState() {
-    super.initState();
-    repository = UserRepository();
-    service = UserService(repository);
-    users = service.getUsers();
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
-  void _refreshUsers() {
-    setState(() {
-      users = service.getUsers();
-    });
+  List<UserModel> _applyFilters(List<UserModel> users) {
+    final search = _searchController.text.trim().toLowerCase();
+
+    return users.where((user) {
+      final matchesSearch =
+          user.nombre.toLowerCase().contains(search) ||
+          user.correo.toLowerCase().contains(search) ||
+          user.rol.toLowerCase().contains(search);
+
+      final matchesRole = _selectedRole == 'todos' || user.rol == _selectedRole;
+
+      return matchesSearch && matchesRole;
+    }).toList();
   }
 
   Future<void> _openCreateUserScreen() async {
-    final result = await Navigator.push<UserModel>(
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => const UserFormScreen()),
     );
 
     if (!mounted) return;
 
-    if (result != null) {
-      final created = service.createUser(result);
-
-      if (created) {
-        _refreshUsers();
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Usuario creado correctamente')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se pudo crear el usuario')),
-        );
-      }
+    if (result == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuario creado correctamente')),
+      );
     }
   }
 
-  Future<void> _openEditUserScreen(int index, UserModel user) async {
-    final result = await Navigator.push<UserModel>(
+  Future<void> _openEditUserScreen(UserModel user) async {
+    final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(builder: (_) => UserFormScreen(userToEdit: user)),
     );
 
     if (!mounted) return;
 
-    if (result != null) {
-      service.updateUser(index: index, updatedUser: result);
-
-      _refreshUsers();
-
+    if (result == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Usuario actualizado correctamente')),
       );
     }
   }
 
-  void _toggleUserStatus(int index) {
-    service.toggleUserStatus(index);
-    _refreshUsers();
+  Future<void> _toggleUserStatus(UserModel user) async {
+    await _userService.actualizarEstadoUsuario(
+      uid: user.id,
+      activo: !user.activo,
+    );
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Estado del usuario actualizado')),
-    );
-  }
-
-  void _confirmDeleteUser(int index) {
-    final user = users[index];
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Confirmar eliminación'),
-          content: Text('¿Deseas eliminar la cuenta de ${user.nombre}?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('No'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.statusDiscarded,
-                foregroundColor: AppColors.textOnDark,
-              ),
-              onPressed: () {
-                service.deleteUser(index);
-                _refreshUsers();
-
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Usuario eliminado correctamente'),
-                  ),
-                );
-              },
-              child: const Text('Sí, eliminar'),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -153,11 +109,44 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               children: [
                 Expanded(
                   child: TextField(
+                    controller: _searchController,
+                    onChanged: (_) {
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       hintText: 'Buscar usuario...',
                       prefixIcon: const Icon(
                         Icons.search,
                         color: AppColors.primary,
+                      ),
+                      suffixIcon: PopupMenuButton<String>(
+                        tooltip: 'Filtrar por rol',
+                        icon: const Icon(
+                          Icons.filter_alt_outlined,
+                          color: AppColors.secondary,
+                        ),
+                        onSelected: (value) {
+                          setState(() {
+                            _selectedRole = value;
+                          });
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: 'todos',
+                            child: Text('Todos los roles'),
+                          ),
+                          PopupMenuItem(
+                            value: 'super_admin',
+                            child: Text('Super Admin'),
+                          ),
+                          PopupMenuItem(value: 'admin', child: Text('Admin')),
+                          PopupMenuItem(value: 'bodega', child: Text('Bodega')),
+                          PopupMenuItem(
+                            value: 'tecnico',
+                            child: Text('Técnico'),
+                          ),
+                          PopupMenuItem(value: 'ventas', child: Text('Ventas')),
+                        ],
                       ),
                       filled: true,
                       fillColor: AppColors.surface,
@@ -222,22 +211,45 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       ),
                     ],
                   ),
-                  child: Column(
-                    children: [
-                      const UserTableHeader(),
-
-                      ...users.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final user = entry.value;
-
-                        return UserTableRow(
-                          user: user,
-                          onEdit: () => _openEditUserScreen(index, user),
-                          onDelete: () => _confirmDeleteUser(index),
-                          onToggleStatus: () => _toggleUserStatus(index),
+                  child: StreamBuilder<List<UserModel>>(
+                    stream: _userService.obtenerUsuarios(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Center(child: CircularProgressIndicator()),
                         );
-                      }),
-                    ],
+                      }
+
+                      if (snapshot.hasError) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text('Error al cargar usuarios'),
+                        );
+                      }
+
+                      final users = _applyFilters(snapshot.data ?? []);
+
+                      if (users.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Text('No hay usuarios que coincidan'),
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          const UserTableHeader(),
+                          ...users.map((user) {
+                            return UserTableRow(
+                              user: user,
+                              onEdit: () => _openEditUserScreen(user),
+                              onToggleStatus: () => _toggleUserStatus(user),
+                            );
+                          }),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),

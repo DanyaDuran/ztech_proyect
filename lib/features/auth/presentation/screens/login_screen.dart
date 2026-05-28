@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-import '../../data/mock_users.dart';
+import '../../domain/user_model.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_validators.dart';
 import '../../../../shared/styles/input_decorations.dart';
@@ -21,8 +23,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
-  void _login() {
+  Future<void> _login() async {
     final isValid = _formKey.currentState!.validate();
 
     if (!isValid) {
@@ -30,33 +33,65 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    final user = mockUsers.where((user) => user.correo == email).firstOrNull;
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    if (user == null) {
+      final uid = credential.user!.uid;
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (!userDoc.exists) {
+        _showMessage('El usuario no tiene perfil registrado');
+        return;
+      }
+
+      final data = userDoc.data()!;
+
+      final user = UserModel(
+        nombre: data['nombre'] ?? '',
+        correo: data['correo'] ?? email,
+
+        rol: data['rol'] ?? '',
+        activo: data['activo'] ?? false,
+      );
+
+      if (!user.activo) {
+        _showMessage('La cuenta se encuentra desactivada');
+        return;
+      }
+
+      CurrentUser.login(user);
+
+      final route = RolePermissions.initialRouteForRole(user.rol);
+
+      _showMessage('Inicio de sesión con éxito');
+
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, route);
+    } on FirebaseAuthException {
       _showMessage('Correo o contraseña incorrectos');
-      return;
+    } catch (e) {
+      _showMessage('Error al iniciar sesión');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-
-    if (!user.activo) {
-      _showMessage('La cuenta se encuentra desactivada');
-      return;
-    }
-
-    if (user.password != password) {
-      _showMessage('Correo o contraseña incorrecto');
-      return;
-    }
-
-    _showMessage('Inicio de sesión con éxito');
-
-    CurrentUser.login(user);
-
-    final route = RolePermissions.initialRouteForRole(user.rol);
-
-    Navigator.pushReplacementNamed(context, route);
   }
 
   void _showMessage(String message) {
@@ -172,9 +207,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        _showMessage('Función de recuperación pendiente');
-                      },
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              _showMessage('Función de recuperación pendiente');
+                            },
                       child: const Text(
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(
@@ -199,14 +236,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(18),
                         ),
                       ),
-                      onPressed: _login,
-                      child: const Text(
-                        'Iniciar sesión',
-                        style: TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      onPressed: _isLoading ? null : _login,
+                      child: _isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text(
+                              'Iniciar sesión',
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
 
