@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../domain/notebook_model.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
 
 class NotebookDetailScreen extends StatelessWidget {
   final NotebookModel notebook;
