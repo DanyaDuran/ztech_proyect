@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:ztech_flutter__app/shared/cards/notebook_card.dart';
-import '../../../../core/theme/theme.dart';
-import '../../../../core/utils/notebook_utils.dart';
-import '../../../../shared/widgets/search/campo_busqueda.dart';
-import '../../../../shared/cards/estado_card.dart';
-import '../../../../shared/dialogs/modal_filtros_estado.dart';
-import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
-import '../../data/mock_notebooks.dart';
-import '../../domain/notebook_model.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/core/utils/notebook_utils.dart';
+import 'package:ztech_flutter__app/shared/widgets/search/campo_busqueda.dart';
+import 'package:ztech_flutter__app/shared/cards/estado_card.dart';
+import 'package:ztech_flutter__app/shared/dialogs/modal_filtros_estado.dart';
+import 'package:ztech_flutter__app/shared/widgets/sidebar/sidebar_menu.dart';
+import 'package:ztech_flutter__app/shared/widgets/app_bar/custom_app_bar.dart';
+import 'package:ztech_flutter__app/features/bodega/data/repositories/notebook_repository.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
 import 'notebook_form_screen.dart';
-import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
 
 class BodegaHomeScreen extends StatefulWidget {
   const BodegaHomeScreen({super.key});
@@ -19,16 +19,9 @@ class BodegaHomeScreen extends StatefulWidget {
 }
 
 class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
-  late List<NotebookModel> notebooks;
-  late List<NotebookModel> filteredNotebooks;
-
-  @override
-  void initState() {
-    super.initState();
-
-    notebooks = mockNotebooks;
-    filteredNotebooks = notebooks;
-  }
+  final NotebookRepository _notebookRepository = NotebookRepository();
+  String searchQuery = '';
+  String? selectedStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -43,183 +36,202 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
         foregroundColor: AppColors.white,
         child: const Icon(Icons.add, size: AppDimensions.iconMedium),
 
-        onPressed: () async {
-          final result = await Navigator.push(
+        onPressed: () {
+          Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const NotebookFormScreen()),
           );
-
-          if (result != null && result is NotebookModel) {
-            setState(() {
-              notebooks.add(result);
-              filteredNotebooks = notebooks;
-            });
-          }
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(AppDimensions.screenPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: AppDimensions.spacingXSmall),
+      body: StreamBuilder<List<NotebookModel>>(
+        stream: _notebookRepository.getNotebooks(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            const Text(
-              'Gestión de notebooks en bodega',
-              style: AppTextStyles.subtitle,
-            ),
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error al cargar notebooks'));
+          }
 
-            const SizedBox(height: AppDimensions.sectionSpacing),
+          final notebooks = snapshot.data ?? [];
 
-            Row(
+          List<NotebookModel> filteredNotebooks = notebooks;
+
+          if (searchQuery.isNotEmpty) {
+            filteredNotebooks = NotebookUtils.searchNotebooks(
+              notebooks: filteredNotebooks,
+              query: searchQuery,
+            );
+          }
+
+          if (selectedStatus != null) {
+            filteredNotebooks = NotebookUtils.filterByStatus(
+              notebooks: filteredNotebooks,
+              status: selectedStatus!,
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.all(AppDimensions.screenPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: CampoBusqueda(
-                    hint: 'Buscar por código, marca, modelo o estado...',
-                    onChanged: (query) {
-                      setState(() {
-                        filteredNotebooks = NotebookUtils.searchNotebooks(
-                          notebooks: notebooks,
-                          query: query,
-                        );
-                      });
-                    },
-                  ),
+                const SizedBox(height: AppDimensions.spacingXSmall),
+
+                const Text(
+                  'Gestión de notebooks en bodega',
+                  style: AppTextStyles.subtitle,
                 ),
 
-                const SizedBox(width: AppDimensions.spacingMedium),
+                const SizedBox(height: AppDimensions.sectionSpacing),
 
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-
-                    side: const BorderSide(color: AppColors.primary),
-
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        AppDimensions.radiusMedium,
+                Row(
+                  children: [
+                    Expanded(
+                      child: CampoBusqueda(
+                        hint: 'Buscar por código, marca, modelo o estado...',
+                        onChanged: (query) {
+                          setState(() {
+                            searchQuery = query;
+                          });
+                        },
                       ),
                     ),
 
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.buttonHorizontalPadding,
-                      vertical: AppDimensions.buttonVerticalPadding,
+                    const SizedBox(width: AppDimensions.spacingMedium),
+
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+
+                        side: const BorderSide(color: AppColors.primary),
+
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppDimensions.radiusMedium,
+                          ),
+                        ),
+
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.buttonHorizontalPadding,
+                          vertical: AppDimensions.buttonVerticalPadding,
+                        ),
+                      ),
+
+                      onPressed: () {
+                        ModalFiltrosEstado.show(
+                          context: context,
+                          onFilterSelected: (status) {
+                            setState(() {
+                              selectedStatus = status;
+                            });
+                          },
+                          onReset: () {
+                            setState(() {
+                              selectedStatus = null;
+                            });
+                          },
+                        );
+                      },
+
+                      icon: const Icon(Icons.filter_alt_outlined),
+                      label: const Text('Filtros'),
                     ),
-                  ),
+                  ],
+                ),
 
-                  onPressed: () {
-                    ModalFiltrosEstado.show(
-                      context: context,
-                      onFilterSelected: (status) {
-                        setState(() {
-                          filteredNotebooks = NotebookUtils.filterByStatus(
+                const SizedBox(height: AppDimensions.sectionSpacing),
+
+                // Cantidades por estado
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: AppDimensions.statusCardWidth,
+                        child: EstadoCard(
+                          title: 'Disp.',
+                          count: NotebookUtils.getCountByStatus(
                             notebooks: notebooks,
-                            status: status,
-                          );
-                        });
-                      },
-                      onReset: () {
-                        setState(() {
-                          filteredNotebooks = notebooks;
-                        });
-                      },
-                    );
-                  },
+                            status: 'Disponible',
+                          ),
+                          color: AppColors.disponible,
+                        ),
+                      ),
+                      const SizedBox(width: AppDimensions.spacingSmall),
+                      SizedBox(
+                        width: AppDimensions.statusCardWidth,
+                        child: EstadoCard(
+                          title: 'Repar',
+                          count: NotebookUtils.getCountByStatus(
+                            notebooks: notebooks,
+                            status: 'En reparación',
+                          ),
+                          color: AppColors.reparacion,
+                        ),
+                      ),
+                      const SizedBox(width: AppDimensions.spacingSmall),
+                      SizedBox(
+                        width: AppDimensions.statusCardWidth,
+                        child: EstadoCard(
+                          title: 'Vend.',
+                          count: NotebookUtils.getCountByStatus(
+                            notebooks: notebooks,
+                            status: 'Vendido',
+                          ),
+                          color: AppColors.vendido,
+                        ),
+                      ),
+                      const SizedBox(width: AppDimensions.spacingSmall),
+                      SizedBox(
+                        width: AppDimensions.statusCardWidth,
+                        child: EstadoCard(
+                          title: 'Merma',
+                          count: NotebookUtils.getCountByStatus(
+                            notebooks: notebooks,
+                            status: 'Merma',
+                          ),
+                          color: AppColors.merma,
+                        ),
+                      ),
+                      const SizedBox(width: AppDimensions.spacingSmall),
+                      SizedBox(
+                        width: AppDimensions.statusCardWidth,
+                        child: EstadoCard(
+                          title: 'Rev.',
+                          count: NotebookUtils.getCountByStatus(
+                            notebooks: notebooks,
+                            status: 'Pendiente de revisión',
+                          ),
+                          color: AppColors.pendiente,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                  icon: const Icon(Icons.filter_alt_outlined),
-                  label: const Text('Filtros'),
+                const SizedBox(height: AppDimensions.sectionSpacing),
+                Expanded(
+                  child: filteredNotebooks.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No se encontraron notebooks',
+                            style: AppTextStyles.subtitle,
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: filteredNotebooks.length,
+                          itemBuilder: (context, index) {
+                            return NotebookCard(
+                              notebook: filteredNotebooks[index],
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
-
-            const SizedBox(height: AppDimensions.sectionSpacing),
-
-            // Cantidades por estado
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: AppDimensions.statusCardWidth,
-                    child: EstadoCard(
-                      title: 'Disp.',
-                      count: NotebookUtils.getCountByStatus(
-                        notebooks: notebooks,
-                        status: 'Disponible',
-                      ),
-                      color: AppColors.disponible,
-                    ),
-                  ),
-                  const SizedBox(width: AppDimensions.spacingSmall),
-                  SizedBox(
-                    width: AppDimensions.statusCardWidth,
-                    child: EstadoCard(
-                      title: 'Repar',
-                      count: NotebookUtils.getCountByStatus(
-                        notebooks: notebooks,
-                        status: 'En reparación',
-                      ),
-                      color: AppColors.reparacion,
-                    ),
-                  ),
-                  const SizedBox(width: AppDimensions.spacingSmall),
-                  SizedBox(
-                    width: AppDimensions.statusCardWidth,
-                    child: EstadoCard(
-                      title: 'Vend.',
-                      count: NotebookUtils.getCountByStatus(
-                        notebooks: notebooks,
-                        status: 'Vendido',
-                      ),
-                      color: AppColors.vendido,
-                    ),
-                  ),
-                  const SizedBox(width: AppDimensions.spacingSmall),
-                  SizedBox(
-                    width: AppDimensions.statusCardWidth,
-                    child: EstadoCard(
-                      title: 'Merma',
-                      count: NotebookUtils.getCountByStatus(
-                        notebooks: notebooks,
-                        status: 'Merma',
-                      ),
-                      color: AppColors.merma,
-                    ),
-                  ),
-                  const SizedBox(width: AppDimensions.spacingSmall),
-                  SizedBox(
-                    width: AppDimensions.statusCardWidth,
-                    child: EstadoCard(
-                      title: 'Rev.',
-                      count: NotebookUtils.getCountByStatus(
-                        notebooks: notebooks,
-                        status: 'Pendiente de revisión',
-                      ),
-                      color: AppColors.pendiente,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: AppDimensions.sectionSpacing),
-            Expanded(
-              child: filteredNotebooks.isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No se encontraron notebooks',
-                        style: AppTextStyles.subtitle,
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: filteredNotebooks.length,
-                      itemBuilder: (context, index) {
-                        return NotebookCard(notebook: filteredNotebooks[index]);
-                      },
-                    ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

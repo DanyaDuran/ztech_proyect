@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/app_validators.dart';
-import '../../../../core/utils/code_generator.dart';
-import '../../../../core/utils/notebook_utils.dart';
-import '../../../../shared/widgets/forms/custom_dropdown_field.dart';
-import '../../../../shared/widgets/forms/custom_text_field.dart';
-import '../../../../shared/widgets/forms/form_section_title.dart';
-import '../../data/notebook_options.dart';
-import '../../data/repositories/notebook_repository.dart';
-import '../../domain/notebook_model.dart';
-import '../../../../shared/widgets/buttons/primary_action_button.dart';
-import '../../../../shared/widgets/forms/custom_multiline_text_field.dart';
+import 'package:ztech_flutter__app/core/theme/app_colors.dart';
+import 'package:ztech_flutter__app/core/utils/utils.dart';
+import 'package:ztech_flutter__app/shared/widgets/forms/widgets.dart';
+import 'package:ztech_flutter__app/shared/widgets/buttons/primary_action_button.dart';
+import 'package:ztech_flutter__app/features/bodega/data/notebook_options.dart';
+import 'package:ztech_flutter__app/features/bodega/data/repositories/notebook_repository.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
 
 class NotebookFormScreen extends StatefulWidget {
   const NotebookFormScreen({super.key});
@@ -23,7 +18,7 @@ class NotebookFormScreen extends StatefulWidget {
 
 class _NotebookFormScreenState extends State<NotebookFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _notebookRepository = NotebookRepository();
+  final NotebookRepository _notebookRepository = NotebookRepository();
 
   final codigoController = TextEditingController();
   final modeloController = TextEditingController();
@@ -63,7 +58,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
   Future<void> _generarCodigoAutomatico() async {
     try {
-      final notebooks = await _notebookRepository.getNotebooks();
+      final notebooks = await _notebookRepository.getNotebooksOnce();
       final currentCount = notebooks.length;
       final newCode = CodeGenerator.generateNotebookCode(currentCount);
 
@@ -96,13 +91,13 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
     final notebook = _buildNotebookModel();
 
     try {
+      await _notebookRepository.addNotebook(notebook);
       if (!mounted) return;
-
-      Navigator.pop(context, notebook);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Notebook registrado correctamente')),
       );
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
 

@@ -1,4 +1,4 @@
-package com.example.ztech_flutter__app
+package cl.ztech.app
 
 import io.flutter.embedding.android.FlutterActivity
 

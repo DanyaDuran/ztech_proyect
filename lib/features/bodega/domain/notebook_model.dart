@@ -52,10 +52,9 @@ class NotebookModel {
       nivel: map['nivel'] ?? '',
       descripcionProblema: map['descripcionProblema'] ?? '',
       observacionesBodega: map['observacionesBodega'] ?? '',
-      fechaIngreso: map['fechaIngreso'] is DateTime
-          ? map['fechaIngreso']
-          : DateTime.tryParse(map['fechaIngreso']?.toString() ?? '') ??
-                DateTime.now(),
+      fechaIngreso: map['fechaIngreso'] != null
+          ? map['fechaIngreso'].toDate()
+          : DateTime.now(),
     );
   }
 
@@ -76,7 +75,7 @@ class NotebookModel {
       'nivel': nivel,
       'descripcionProblema': descripcionProblema,
       'observacionesBodega': observacionesBodega,
-      'fechaIngreso': fechaIngreso.toIso8601String(),
+      'fechaIngreso': fechaIngreso,
     };
   }
 }
