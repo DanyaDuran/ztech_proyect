@@ -4,13 +4,14 @@ import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+
 import '../../../bodega/domain/notebook_model.dart';
-import '../../data/mock_ventas.dart';
+import '../../data/repositories/ventas_repository.dart';
 import '../../domain/venta_model.dart';
 
 class RegistrarVentaScreen extends StatefulWidget {
   final NotebookModel notebook;
-  final VoidCallback onConfirmarVenta;
+  final Future<void> Function() onConfirmarVenta;
 
   const RegistrarVentaScreen({
     super.key,
@@ -24,6 +25,7 @@ class RegistrarVentaScreen extends StatefulWidget {
 
 class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
   final _formKey = GlobalKey<FormState>();
+  final VentaRepository ventaRepository = VentaRepository();
 
   final clienteController = TextEditingController();
   final telefonoController = TextEditingController();
@@ -31,6 +33,7 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
   final notasController = TextEditingController();
 
   String formaPago = 'Transferencia';
+  bool isSaving = false;
 
   @override
   void dispose() {
@@ -44,15 +47,11 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
   String? validarNombreCompleto(String? value) {
     final text = value?.trim() ?? '';
 
-    if (text.isEmpty) {
-      return 'El nombre completo es obligatorio';
-    }
+    if (text.isEmpty) return 'El nombre completo es obligatorio';
 
     final partes = text.split(' ').where((p) => p.isNotEmpty).toList();
 
-    if (partes.length < 2) {
-      return 'Ingresa nombre y apellido';
-    }
+    if (partes.length < 2) return 'Ingresa nombre y apellido';
 
     if (!RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$').hasMatch(text)) {
       return 'El nombre solo debe contener letras';
@@ -64,9 +63,7 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
   String? validarTelefono(String? value) {
     final text = value?.trim() ?? '';
 
-    if (text.isEmpty) {
-      return 'El teléfono es obligatorio';
-    }
+    if (text.isEmpty) return 'El teléfono es obligatorio';
 
     if (!RegExp(r'^9\s?\d{8}$').hasMatch(text)) {
       return 'Formato válido: 9 40503233';
@@ -78,57 +75,79 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
   String? validarPrecio(String? value) {
     final text = value?.replaceAll('.', '').trim() ?? '';
 
-    if (text.isEmpty) {
-      return 'El precio es obligatorio';
-    }
+    if (text.isEmpty) return 'El precio es obligatorio';
 
     if (!RegExp(r'^\d+$').hasMatch(text)) {
       return 'El precio solo debe contener números';
     }
 
-    if (int.parse(text) <= 0) {
-      return 'El precio debe ser mayor a 0';
-    }
+    if (int.parse(text) <= 0) return 'El precio debe ser mayor a 0';
 
     return null;
   }
 
-  void confirmarVenta() {
+  Future<void> confirmarVenta() async {
+    if (isSaving) return;
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final venta = VentaModel(
-      notebook: widget.notebook,
-      cliente: clienteController.text.trim(),
-      telefono: telefonoController.text.trim(),
-      precio: precioController.text.replaceAll('.', '').trim(),
-      formaPago: formaPago,
-      notas: notasController.text.trim(),
-      fechaVenta: DateTime.now(),
-    );
+    setState(() {
+      isSaving = true;
+    });
 
-    mockVentas.add(venta);
+    try {
+      final venta = VentaModel(
+        notebook: widget.notebook,
+        cliente: clienteController.text.trim(),
+        telefono: telefonoController.text.trim(),
+        precio: precioController.text.replaceAll('.', '').trim(),
+        formaPago: formaPago,
+        notas: notasController.text.trim(),
+        fechaVenta: DateTime.now(),
+      );
 
-    widget.onConfirmarVenta();
+      await ventaRepository.addVenta(venta);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Venta registrada correctamente')),
-    );
+      if (!mounted) return;
 
-    Navigator.of(context).popUntil((route) => route.isFirst);
+      await widget.onConfirmarVenta();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Venta registrada correctamente')),
+      );
+
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al registrar venta: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+
       appBar: AppBar(
         title: const Text('Registrar Venta', style: AppTextStyles.appBarTitle),
         backgroundColor: AppColors.white,
         elevation: AppDimensions.appBarElevation,
         iconTheme: const IconThemeData(color: AppColors.secondary),
       ),
+
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -137,7 +156,9 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSectionTitle('Información del cliente'),
+
               const SizedBox(height: AppDimensions.spacingSmall),
+
               _buildTextField(
                 controller: clienteController,
                 label: 'Nombre completo',
@@ -145,6 +166,7 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                 icon: Icons.person_outline,
                 validator: validarNombreCompleto,
               ),
+
               _buildTextField(
                 controller: telefonoController,
                 label: 'Teléfono',
@@ -157,15 +179,20 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                   LengthLimitingTextInputFormatter(10),
                 ],
               ),
+
               const SizedBox(height: AppDimensions.sectionSpacing),
+
               _buildSectionTitle('Información de venta'),
+
               const SizedBox(height: AppDimensions.spacingSmall),
+
               _buildReadOnlyField(
                 label: 'Notebook',
                 value:
                     '${widget.notebook.marca} ${widget.notebook.modelo} (${widget.notebook.codigo})',
                 icon: Icons.laptop_mac,
               ),
+
               _buildTextField(
                 controller: precioController,
                 label: 'Precio de venta',
@@ -175,6 +202,7 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                 validator: validarPrecio,
                 inputFormatters: [PrecioInputFormatter()],
               ),
+
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: DropdownButtonFormField<String>(
@@ -195,13 +223,16 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                     ),
                     DropdownMenuItem(value: 'Tarjeta', child: Text('Tarjeta')),
                   ],
-                  onChanged: (value) {
-                    setState(() {
-                      formaPago = value!;
-                    });
-                  },
+                  onChanged: isSaving
+                      ? null
+                      : (value) {
+                          setState(() {
+                            formaPago = value!;
+                          });
+                        },
                 ),
               ),
+
               TextFormField(
                 controller: notasController,
                 maxLines: 3,
@@ -217,7 +248,9 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                       counterText: '',
                     ),
               ),
+
               const SizedBox(height: 28),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -231,11 +264,17 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
                       ),
                     ),
                   ),
-                  onPressed: confirmarVenta,
-                  child: const Text(
-                    'Confirmar Venta',
-                    style: AppTextStyles.button,
-                  ),
+                  onPressed: isSaving ? null : confirmarVenta,
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Confirmar Venta',
+                          style: AppTextStyles.button,
+                        ),
                 ),
               ),
             ],
@@ -268,6 +307,7 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
         keyboardType: keyboardType,
         inputFormatters: inputFormatters,
         validator: validator,
+        enabled: !isSaving,
         decoration: _inputDecoration(
           label: label,
           icon: icon,

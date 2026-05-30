@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:ztech_flutter__app/core/helpers/notebook_status_helper.dart';
 import 'package:ztech_flutter__app/core/theme/theme.dart';
-import 'package:ztech_flutter__app/features/bodega/data/mock_notebooks.dart';
+import 'package:ztech_flutter__app/features/bodega/data/repositories/notebook_repository.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
 
 class StockAlert extends StatelessWidget {
   final VoidCallback onShowMessage;
@@ -11,73 +12,57 @@ class StockAlert extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int disponibles = NotebookStatusHelper.countByStatus(
-      mockNotebooks,
-      NotebookStatusHelper.disponible,
-    );
+    final repository = NotebookRepository();
 
-    if (disponibles >= 5) {
-      return const SizedBox.shrink();
-    }
+    return StreamBuilder<List<NotebookModel>>(
+      stream: repository.getNotebooks(),
+      builder: (context, snapshot) {
+        final notebooks = snapshot.data ?? [];
 
-    return Padding(
-      padding: const EdgeInsets.only(top: AppDimensions.sectionSpacing),
-      child: Container(
-        padding: const EdgeInsets.all(AppDimensions.screenPadding),
-        decoration: BoxDecoration(
-          color: AppColors.statusRepair.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-          border: Border.all(
-            color: AppColors.statusRepair.withValues(alpha: 0.45),
-          ),
-        ),
-        child: Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: AppDimensions.inputSpacing,
-          runSpacing: AppDimensions.inputSpacing,
-          children: [
-            const Icon(
-              Icons.warning_amber_rounded,
-              color: AppColors.statusRepair,
-              size: 32,
+        final disponibles = NotebookStatusHelper.countByStatus(
+          notebooks,
+          NotebookStatusHelper.disponible,
+        );
+
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            disponibles >= 5) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: AppDimensions.sectionSpacing),
+          child: Container(
+            padding: const EdgeInsets.all(AppDimensions.screenPadding),
+            decoration: BoxDecoration(
+              color: AppColors.statusRepair.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+              border: Border.all(
+                color: AppColors.statusRepair.withValues(alpha: 0.45),
+              ),
             ),
-
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: AppDimensions.inputSpacing,
+              runSpacing: AppDimensions.inputSpacing,
               children: [
-                Text(
-                  'Alerta de stock bajo',
-                  style: AppTextStyles.cardTitle.copyWith(
-                    color: AppColors.statusRepair,
-                  ),
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: AppColors.statusRepair,
+                  size: 32,
                 ),
-                const SizedBox(height: AppDimensions.spacingXSmall),
                 Text(
-                  'Quedan $disponibles notebooks disponibles. '
-                  'Se recomienda realizar una nueva compra.',
-                  style: AppTextStyles.body.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
+                  'Quedan $disponibles notebooks disponibles.',
+                  style: AppTextStyles.body,
+                ),
+                OutlinedButton(
+                  onPressed: onShowMessage,
+                  child: const Text('Ver inventario'),
                 ),
               ],
             ),
-
-            OutlinedButton(
-              onPressed: onShowMessage,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.statusRepair,
-                side: const BorderSide(color: AppColors.statusRepair),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppDimensions.radiusSmall,
-                  ),
-                ),
-              ),
-              child: const Text('Ver inventario'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

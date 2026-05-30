@@ -4,12 +4,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-import '../screens/tecnico_home_screen.dart';
-import '../screens/tecnico_reparacion_screen.dart';
-import '../screens/tecnico_disponible_screen.dart';
-import '../screens/tecnico_merma_screen.dart';
-import '../screens/tecnico_historial_screen.dart';
-
 class TecnicoBottomNavigation extends StatelessWidget {
   final int currentIndex;
 
@@ -18,35 +12,29 @@ class TecnicoBottomNavigation extends StatelessWidget {
   void navigateTo(BuildContext context, int index) {
     if (index == currentIndex) return;
 
-    Widget screen;
+    String route;
 
     switch (index) {
       case 0:
-        screen = const TecnicoHomeScreen();
+        route = '/tecnico';
         break;
       case 1:
-        screen = const TecnicoReparacionScreen();
+        route = '/tecnico/reparacion';
         break;
-
       case 2:
-        screen = const TecnicoDisponiblesScreen();
+        route = '/tecnico/disponible';
         break;
-
       case 3:
-        screen = const TecnicoMermaScreen();
+        route = '/tecnico/merma';
         break;
-
       case 4:
-        screen = const TecnicoHistorialScreen();
+        route = '/tecnico/historial';
         break;
       default:
-        screen = const TecnicoHomeScreen();
+        route = '/tecnico';
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => screen),
-    );
+    Navigator.pushReplacementNamed(context, route);
   }
 
   Widget buildButton({
@@ -77,9 +65,7 @@ class TecnicoBottomNavigation extends StatelessWidget {
                 color: isSelected ? AppColors.white : AppColors.primary,
                 size: AppDimensions.iconMedium,
               ),
-
               const SizedBox(height: AppDimensions.spacingXSmall),
-
               Text(
                 label,
                 style: isSelected ? AppTextStyles.button : AppTextStyles.body,
@@ -114,27 +100,21 @@ class TecnicoBottomNavigation extends StatelessWidget {
             icon: Icons.pending_actions,
             index: 0,
           ),
-
           const SizedBox(width: AppDimensions.spacingSmall),
-
           buildButton(
             context: context,
             label: 'Repar.',
             icon: Icons.build,
             index: 1,
           ),
-
           const SizedBox(width: AppDimensions.spacingSmall),
-
           buildButton(
             context: context,
             label: 'Disp.',
             icon: Icons.check_circle,
             index: 2,
           ),
-
           const SizedBox(width: AppDimensions.spacingSmall),
-
           buildButton(
             context: context,
             label: 'Merma',
@@ -142,14 +122,12 @@ class TecnicoBottomNavigation extends StatelessWidget {
             index: 3,
           ),
           const SizedBox(width: AppDimensions.spacingSmall),
-
           buildButton(
             context: context,
             label: 'Hist',
             icon: Icons.history,
             index: 4,
           ),
-          const SizedBox(width: AppDimensions.spacingSmall),
         ],
       ),
     );

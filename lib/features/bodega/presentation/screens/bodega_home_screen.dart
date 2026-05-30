@@ -9,6 +9,7 @@ import 'package:ztech_flutter__app/shared/widgets/sidebar/sidebar_menu.dart';
 import 'package:ztech_flutter__app/shared/widgets/app_bar/custom_app_bar.dart';
 import 'package:ztech_flutter__app/features/bodega/data/repositories/notebook_repository.dart';
 import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
+
 import 'notebook_form_screen.dart';
 
 class BodegaHomeScreen extends StatefulWidget {
@@ -20,8 +21,24 @@ class BodegaHomeScreen extends StatefulWidget {
 
 class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
   final NotebookRepository _notebookRepository = NotebookRepository();
-  String searchQuery = '';
+
+  final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode();
+
+  final ValueNotifier<String> searchQuery = ValueNotifier<String>('');
   String? selectedStatus;
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    searchFocusNode.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void searchNotebook(String query) {
+    searchQuery.value = query;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +48,11 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
       drawer: const SidebarMenu(currentRoute: '/bodega'),
 
       appBar: const CustomAppBar(title: 'Inventario'),
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         child: const Icon(Icons.add, size: AppDimensions.iconMedium),
-
         onPressed: () {
           Navigator.push(
             context,
@@ -43,6 +60,7 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
           );
         },
       ),
+
       body: StreamBuilder<List<NotebookModel>>(
         stream: _notebookRepository.getNotebooks(),
         builder: (context, snapshot) {
@@ -56,21 +74,6 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
 
           final notebooks = snapshot.data ?? [];
 
-          List<NotebookModel> filteredNotebooks = notebooks;
-
-          if (searchQuery.isNotEmpty) {
-            filteredNotebooks = NotebookUtils.searchNotebooks(
-              notebooks: filteredNotebooks,
-              query: searchQuery,
-            );
-          }
-
-          if (selectedStatus != null) {
-            filteredNotebooks = NotebookUtils.filterByStatus(
-              notebooks: filteredNotebooks,
-              status: selectedStatus!,
-            );
-          }
           return Padding(
             padding: const EdgeInsets.all(AppDimensions.screenPadding),
             child: Column(
@@ -89,12 +92,10 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                   children: [
                     Expanded(
                       child: CampoBusqueda(
+                        controller: searchController,
+                        focusNode: searchFocusNode,
                         hint: 'Buscar por código, marca, modelo o estado...',
-                        onChanged: (query) {
-                          setState(() {
-                            searchQuery = query;
-                          });
-                        },
+                        onChanged: searchNotebook,
                       ),
                     ),
 
@@ -103,21 +104,17 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primary,
-
                         side: const BorderSide(color: AppColors.primary),
-
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(
                             AppDimensions.radiusMedium,
                           ),
                         ),
-
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.buttonHorizontalPadding,
                           vertical: AppDimensions.buttonVerticalPadding,
                         ),
                       ),
-
                       onPressed: () {
                         ModalFiltrosEstado.show(
                           context: context,
@@ -133,7 +130,6 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                           },
                         );
                       },
-
                       icon: const Icon(Icons.filter_alt_outlined),
                       label: const Text('Filtros'),
                     ),
@@ -142,7 +138,6 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
 
                 const SizedBox(height: AppDimensions.sectionSpacing),
 
-                // Cantidades por estado
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -211,22 +206,41 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                 ),
 
                 const SizedBox(height: AppDimensions.sectionSpacing),
+
                 Expanded(
-                  child: filteredNotebooks.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No se encontraron notebooks',
-                            style: AppTextStyles.subtitle,
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: filteredNotebooks.length,
-                          itemBuilder: (context, index) {
-                            return NotebookCard(
-                              notebook: filteredNotebooks[index],
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: searchQuery,
+                    builder: (context, query, _) {
+                      List<NotebookModel> filteredNotebooks =
+                          NotebookUtils.searchNotebooks(
+                            notebooks: notebooks,
+                            query: query,
+                          );
+
+                      if (selectedStatus != null) {
+                        filteredNotebooks = NotebookUtils.filterByStatus(
+                          notebooks: filteredNotebooks,
+                          status: selectedStatus!,
+                        );
+                      }
+
+                      return filteredNotebooks.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No se encontraron notebooks',
+                                style: AppTextStyles.subtitle,
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: filteredNotebooks.length,
+                              itemBuilder: (context, index) {
+                                return NotebookCard(
+                                  notebook: filteredNotebooks[index],
+                                );
+                              },
                             );
-                          },
-                        ),
+                    },
+                  ),
                 ),
               ],
             ),

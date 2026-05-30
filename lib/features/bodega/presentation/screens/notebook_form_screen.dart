@@ -113,13 +113,35 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
     }
   }
 
+  String _buildProcesador() {
+    final familia = familiaProcesador?.trim() ?? '';
+    final serie = serieProcesador?.trim() ?? '';
+
+    if (familia.isEmpty) return serie;
+    if (serie.isEmpty) return familia;
+
+    if (familia == 'AMD Ryzen' && serie.startsWith('Ryzen')) {
+      return serie.replaceFirst('Ryzen', 'AMD Ryzen').trim();
+    }
+
+    if (familia == 'Intel Core' && !serie.startsWith('Intel')) {
+      return '$familia $serie'.trim();
+    }
+
+    if (serie.toLowerCase().startsWith(familia.toLowerCase())) {
+      return serie.trim();
+    }
+
+    return '$familia $serie'.trim();
+  }
+
   NotebookModel _buildNotebookModel() {
     return NotebookModel(
       codigo: codigoController.text.trim(),
       marca: marca ?? '',
       linea: linea ?? '',
       modelo: modeloController.text.trim(),
-      procesador: '${familiaProcesador ?? ''} ${serieProcesador ?? ''}'.trim(),
+      procesador: _buildProcesador(),
       generacion: generacion ?? '',
       ram: ram ?? '',
       almacenamiento: almacenamiento ?? '',

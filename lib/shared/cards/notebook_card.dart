@@ -56,12 +56,10 @@ class NotebookCard extends StatelessWidget {
                 Text('Código: ${notebook.codigo}', style: AppTextStyles.body),
                 const SizedBox(height: AppDimensions.spacingXSmall),
                 Text(
-                  notebook.estado.toLowerCase() == 'vendido'
-                      ? 'Vendido'
-                      : 'Ubicación: '
-                            '${notebook.seccion} - '
-                            '${notebook.estante} - '
-                            '${notebook.nivel}',
+                  'Ubicación: '
+                  '${notebook.seccion} - '
+                  '${notebook.estante} - '
+                  '${notebook.nivel}',
                   style: AppTextStyles.body,
                 ),
               ],

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../bodega/domain/notebook_model.dart';
 
 class VentaModel {
@@ -18,4 +20,37 @@ class VentaModel {
     required this.notas,
     required this.fechaVenta,
   });
+
+  factory VentaModel.fromMap(Map<String, dynamic> map) {
+    final fecha = map['fechaVenta'];
+
+    return VentaModel(
+      notebook: NotebookModel.fromMap(
+        Map<String, dynamic>.from(map['notebook'] ?? {}),
+      ),
+      cliente: map['cliente'] ?? '',
+      telefono: map['telefono'] ?? '',
+      precio: map['precio'] ?? '',
+      formaPago: map['formaPago'] ?? '',
+      notas: map['notas'] ?? '',
+      fechaVenta: fecha is Timestamp
+          ? fecha.toDate()
+          : fecha is DateTime
+          ? fecha
+          : DateTime.tryParse(fecha?.toString() ?? '') ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'notebook': notebook.toMap(),
+      'codigoNotebook': notebook.codigo,
+      'cliente': cliente,
+      'telefono': telefono,
+      'precio': precio,
+      'formaPago': formaPago,
+      'notas': notas,
+      'fechaVenta': Timestamp.fromDate(fechaVenta),
+    };
+  }
 }
