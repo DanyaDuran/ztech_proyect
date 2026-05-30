@@ -9,6 +9,10 @@ import '../features/tecnico/presentation/screens/tecnico_home_screen.dart';
 import '../features/admin/presentation/screens/user_management_screen.dart';
 import '../features/ventas/presentation/screens/ventas_home_screen.dart';
 import '../features/reportes/presentation/screens/reportes_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_reparacion_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_disponible_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_merma_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_historial_screen.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -23,7 +27,15 @@ class App extends StatelessWidget {
         AppRoutes.login: (context) => const LoginScreen(),
         AppRoutes.dashboard: (context) => const AdminDashboardScreen(),
         AppRoutes.bodega: (context) => const BodegaHomeScreen(),
+
         AppRoutes.tecnico: (context) => const TecnicoHomeScreen(),
+        AppRoutes.tecnicoReparacion: (context) =>
+            const TecnicoReparacionScreen(),
+        AppRoutes.tecnicoDisponible: (context) =>
+            const TecnicoDisponiblesScreen(),
+        AppRoutes.tecnicoMerma: (context) => const TecnicoMermaScreen(),
+        AppRoutes.tecnicoHistorial: (context) => const TecnicoHistorialScreen(),
+
         AppRoutes.admin: (context) => const UserManagementScreen(),
         AppRoutes.ventas: (context) => const VentasHomeScreen(),
         AppRoutes.reportes: (context) => const ReportesScreen(),

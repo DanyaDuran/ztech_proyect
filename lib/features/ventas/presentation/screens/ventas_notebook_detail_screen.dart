@@ -3,25 +3,38 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+
+import '../../../bodega/data/repositories/status_history_repository.dart';
 import '../../../bodega/domain/notebook_model.dart';
+import '../../../bodega/domain/status_history_model.dart';
+import '../../domain/venta_model.dart';
 
 class VentasNotebookDetailScreen extends StatelessWidget {
-  final NotebookModel notebook;
-  final VoidCallback onRegistrarVenta;
+  final NotebookModel? notebook;
+  final VentaModel? venta;
+  final VoidCallback? onRegistrarVenta;
 
   const VentasNotebookDetailScreen({
     super.key,
-    required this.notebook,
-    required this.onRegistrarVenta,
+    this.notebook,
+    this.venta,
+    this.onRegistrarVenta,
   });
+
+  NotebookModel get notebookFinal => venta?.notebook ?? notebook!;
 
   @override
   Widget build(BuildContext context) {
+    final historyRepository = StatusHistoryRepository();
+
     return Scaffold(
       backgroundColor: AppColors.background,
 
       appBar: AppBar(
-        title: const Text('Detalle Notebook', style: AppTextStyles.appBarTitle),
+        title: Text(
+          venta == null ? 'Detalle del notebook' : 'Detalle de venta',
+          style: AppTextStyles.appBarTitle,
+        ),
         backgroundColor: AppColors.white,
         elevation: AppDimensions.appBarElevation,
         iconTheme: const IconThemeData(color: AppColors.secondary),
@@ -33,46 +46,37 @@ class VentasNotebookDetailScreen extends StatelessWidget {
         child: Column(
           children: [
             _buildHeader(),
-
             const SizedBox(height: AppDimensions.sectionSpacing),
 
-            _buildInfoTable(
-              title: 'Especificaciones',
-              rows: [
-                _DetailRow('Procesador', notebook.procesador),
-                _DetailRow('RAM', notebook.ram),
-                _DetailRow('Almacenamiento', notebook.almacenamiento),
-                _DetailRow('Gráfica', notebook.tarjetaGrafica),
-                _DetailRow('Estado', notebook.estado),
-                _DetailRow(
-                  'Ubicación',
-                  '${notebook.seccion} - Estante ${notebook.estante} - Nivel ${notebook.nivel}',
-                ),
-              ],
-            ),
+            if (venta != null) ...[
+              _buildVentaInfo(),
+              const SizedBox(height: AppDimensions.sectionSpacing),
+            ],
 
-            const SizedBox(height: 24),
+            _buildNotebookInfo(),
+            const SizedBox(height: AppDimensions.sectionSpacing),
+            _buildHistorialTecnico(historyRepository),
 
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      AppDimensions.radiusMedium,
+            if (onRegistrarVenta != null) ...[
+              const SizedBox(height: AppDimensions.sectionSpacing),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        AppDimensions.radiusMedium,
+                      ),
                     ),
                   ),
-                ),
-                onPressed: onRegistrarVenta,
-                child: const Text(
-                  'Registrar Venta',
-                  style: AppTextStyles.button,
+                  onPressed: onRegistrarVenta,
+                  child: const Text('Registrar Venta'),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
@@ -90,47 +94,29 @@ class VentasNotebookDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(AppDimensions.cardPadding),
         child: Column(
           children: [
-            Container(
-              width: 130,
-              height: 90,
-              decoration: BoxDecoration(
-                color: AppColors.inputBackground,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Icon(
-                Icons.laptop_mac,
-                color: AppColors.primary,
-                size: 58,
-              ),
-            ),
-
-            const SizedBox(height: AppDimensions.spacingMedium),
-
+            const Icon(Icons.laptop_mac, size: 60, color: AppColors.primary),
+            const SizedBox(height: 12),
             Text(
-              '${notebook.marca} ${notebook.modelo}',
+              '${notebookFinal.marca} ${notebookFinal.modelo}',
               textAlign: TextAlign.center,
-              style: AppTextStyles.cardTitle.copyWith(
-                color: AppColors.textPrimary,
-              ),
+              style: AppTextStyles.cardTitle,
             ),
-
-            const SizedBox(height: AppDimensions.spacingXSmall),
-
-            Text('Código: ${notebook.codigo}', style: AppTextStyles.subtitle),
-
-            const SizedBox(height: AppDimensions.spacingSmall),
-
+            const SizedBox(height: 4),
+            Text(
+              'Código: ${notebookFinal.codigo}',
+              style: AppTextStyles.subtitle,
+            ),
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.statusAvailable.withValues(alpha: 0.12),
+                color: AppColors.statusSold.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                notebook.estado,
+                venta == null ? notebookFinal.estado : 'Vendido',
                 style: AppTextStyles.badge.copyWith(
-                  color: AppColors.statusAvailable,
+                  color: AppColors.statusSold,
                 ),
               ),
             ),
@@ -140,10 +126,56 @@ class VentasNotebookDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTable({
-    required String title,
-    required List<_DetailRow> rows,
-  }) {
+  Widget _buildVentaInfo() {
+    final ventaFinal = venta!;
+
+    return _buildCard(
+      title: 'Datos de la venta',
+      children: [
+        _row('Cliente', ventaFinal.cliente),
+        _row('Teléfono', ventaFinal.telefono),
+        _row('Precio', '\$${ventaFinal.precio}'),
+        _row('Forma de pago', ventaFinal.formaPago),
+        _row('Fecha venta', _formatDateTime(ventaFinal.fechaVenta)),
+        if (ventaFinal.notas.trim().isNotEmpty) _row('Notas', ventaFinal.notas),
+      ],
+    );
+  }
+
+  Widget _buildNotebookInfo() {
+    return _buildCard(
+      title: 'Datos del notebook',
+      children: [
+        _row('Marca', notebookFinal.marca),
+        _row('Línea', notebookFinal.linea),
+        _row('Modelo', notebookFinal.modelo),
+        _row('Procesador', notebookFinal.procesador),
+        _row('Generación', notebookFinal.generacion),
+        _row('RAM', notebookFinal.ram),
+        _row('Almacenamiento', notebookFinal.almacenamiento),
+        _row('Tarjeta gráfica', notebookFinal.tarjetaGrafica),
+        _row('Estado', notebookFinal.estado),
+        _row(
+          'Ubicación',
+          '${notebookFinal.seccion} - Estante ${notebookFinal.estante} - Nivel ${notebookFinal.nivel}',
+        ),
+        _row(
+          'Problema',
+          notebookFinal.descripcionProblema.isEmpty
+              ? 'Sin problema reportado'
+              : notebookFinal.descripcionProblema,
+        ),
+        _row(
+          'Obs. bodega',
+          notebookFinal.observacionesBodega.isEmpty
+              ? '-'
+              : notebookFinal.observacionesBodega,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHistorialTecnico(StatusHistoryRepository historyRepository) {
     return Card(
       color: AppColors.white,
       elevation: AppDimensions.cardElevation,
@@ -151,51 +183,97 @@ class VentasNotebookDetailScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.cardPadding,
-          vertical: AppDimensions.inputSpacing,
+        padding: const EdgeInsets.all(AppDimensions.cardPadding),
+        child: StreamBuilder<List<StatusHistoryModel>>(
+          stream: historyRepository.getHistory(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final history = (snapshot.data ?? [])
+                .where((h) => h.codigoNotebook == notebookFinal.codigo)
+                .toList();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Acciones realizadas por técnico',
+                  style: AppTextStyles.cardTitle,
+                ),
+                const SizedBox(height: AppDimensions.spacingSmall),
+                if (history.isEmpty)
+                  const Text('Sin acciones técnicas registradas')
+                else
+                  ...history.map(
+                    (h) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${h.estadoAnterior} → ${h.estadoNuevo}',
+                            style: AppTextStyles.body.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (h.diagnostico.trim().isNotEmpty)
+                            Text('Diagnóstico: ${h.diagnostico}'),
+                          if (h.accionesRealizadas.trim().isNotEmpty)
+                            Text('Acciones: ${h.accionesRealizadas}'),
+                          if (h.observacion.trim().isNotEmpty)
+                            Text('Observación: ${h.observacion}'),
+                          Text(
+                            '${h.usuarioResponsable} - ${_formatDateTime(h.fecha)}',
+                            style: AppTextStyles.subtitle,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
+      ),
+    );
+  }
+
+  Widget _buildCard({required String title, required List<Widget> children}) {
+    return Card(
+      color: AppColors.white,
+      elevation: AppDimensions.cardElevation,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppDimensions.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: AppTextStyles.cardTitle.copyWith(
-                color: AppColors.textPrimary,
-              ),
-            ),
-
+            Text(title, style: AppTextStyles.cardTitle),
             const SizedBox(height: AppDimensions.spacingSmall),
-
-            ...rows.map((row) => _buildTableRow(row.label, row.value)),
+            ...children,
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTableRow(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 9),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 0.6)),
-      ),
+  Widget _row(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 125,
             child: Text(
-              label,
-              style: AppTextStyles.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+              '$label:',
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
-
-          const SizedBox(width: AppDimensions.spacingSmall),
-
           Expanded(
             child: Text(
               value.trim().isEmpty ? '-' : value,
@@ -206,11 +284,14 @@ class VentasNotebookDetailScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class _DetailRow {
-  final String label;
-  final String value;
+  String _formatDateTime(DateTime dateTime) {
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final year = dateTime.year.toString();
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
 
-  _DetailRow(this.label, this.value);
+    return '$day/$month/$year - $hour:$minute';
+  }
 }

@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../shared/components/estado_badge.dart';
+
 import '../../../bodega/domain/notebook_model.dart';
 import '../screens/tecnico_notebook_detail_screen.dart';
-import '../../../../shared/components/estado_badge.dart';
 
 class TecnicoNotebookCard extends StatelessWidget {
   final NotebookModel notebook;
@@ -46,6 +47,7 @@ class TecnicoNotebookCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
           contentPadding: const EdgeInsets.all(AppDimensions.cardPadding),
+
           leading: Container(
             width: 50,
             height: 50,
@@ -59,26 +61,29 @@ class TecnicoNotebookCard extends StatelessWidget {
               color: AppColors.secondary,
             ),
           ),
+
           title: Text(
             '${notebook.marca} ${notebook.modelo}',
             style: AppTextStyles.cardTitle,
           ),
+
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Código: ${notebook.codigo}', style: AppTextStyles.body),
+
                 const SizedBox(height: AppDimensions.spacingXSmall),
+
                 Text(
-                  notebook.descripcionProblema.isEmpty
-                      ? 'Sin problema reportado'
-                      : notebook.descripcionProblema,
+                  'Ubicación: ${notebook.seccion} - ${notebook.estante} - ${notebook.nivel}',
                   style: AppTextStyles.body,
                 ),
               ],
             ),
           ),
+
           trailing: EstadoBadge(
             status: notebook.estado,
             color: getStatusColor(notebook.estado),

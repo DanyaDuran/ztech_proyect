@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_dimensions.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 import '../screens/ventas_history_screen.dart';
 
 class VentasActionsSection extends StatelessWidget {
@@ -12,85 +15,26 @@ class VentasActionsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-
       children: [
-        const Text(
-          'Acciones rápidas',
-
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.secondary,
-          ),
-        ),
-
+        const Text('Acciones rápidas', style: AppTextStyles.cardTitle),
         const SizedBox(height: 12),
-
         Row(
           children: [
             Expanded(
-              child: GestureDetector(
+              child: _ActionCard(
+                icon: Icons.inventory_2_outlined,
+                title: 'Registrar salida',
+                subtitle: 'Registrar venta de notebook',
+                isPrimary: true,
                 onTap: onRegistrarSalida,
-
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.inventory_2_outlined,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-
-                          SizedBox(width: 8),
-
-                          Expanded(
-                            child: Text(
-                              'Registrar salida',
-
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-
-                          Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 8),
-
-                      Text(
-                        'Registrar la venta o salida de un notebook',
-
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
-
             const SizedBox(width: 12),
-
             Expanded(
-              child: GestureDetector(
+              child: _ActionCard(
+                icon: Icons.receipt_long_outlined,
+                title: 'Historial de ventas',
+                subtitle: 'Ver registros',
                 onTap: () {
                   Navigator.push(
                     context,
@@ -99,57 +43,84 @@ class VentasActionsSection extends StatelessWidget {
                     ),
                   );
                 },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.receipt_long_outlined,
-                            color: AppColors.secondary,
-                            size: 20,
-                          ),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'Historial de ventas',
-                              style: TextStyle(
-                                color: AppColors.secondary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: AppColors.secondary,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Ver todas las salidas registradas',
-                        style: TextStyle(
-                          color: AppColors.textGrey,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _ActionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool isPrimary;
+
+  const _ActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.isPrimary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 120,
+      child: Material(
+        color: isPrimary ? AppColors.primary : AppColors.white,
+        elevation: AppDimensions.cardElevation,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 24,
+                  color: isPrimary ? AppColors.white : AppColors.primary,
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isPrimary ? AppColors.white : AppColors.secondary,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.subtitle.copyWith(
+                    fontSize: 11,
+                    color: isPrimary
+                        ? AppColors.white.withValues(alpha: 0.85)
+                        : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

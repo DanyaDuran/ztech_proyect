@@ -25,25 +25,19 @@ class VentaNotebookCard extends StatelessWidget {
       color: Colors.white,
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 14),
-
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-
       child: Padding(
         padding: const EdgeInsets.all(14),
-
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
-
           children: [
             Container(
               width: 50,
               height: 50,
-
               decoration: BoxDecoration(
                 color: AppColors.lightGrey,
                 borderRadius: BorderRadius.circular(10),
               ),
-
               child: const Icon(
                 Icons.laptop_mac,
                 size: 28,
@@ -56,11 +50,11 @@ class VentaNotebookCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-
                 children: [
                   Text(
                     '${notebook.marca} ${notebook.modelo}',
-
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColors.secondary,
@@ -71,7 +65,6 @@ class VentaNotebookCard extends StatelessWidget {
 
                   Text(
                     'Código: ${notebook.codigo}',
-
                     style: const TextStyle(color: AppColors.textGrey),
                   ),
 
@@ -79,7 +72,8 @@ class VentaNotebookCard extends StatelessWidget {
 
                   Text(
                     '${notebook.procesador} • ${notebook.ram}',
-
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: AppColors.textGrey),
                   ),
                 ],
@@ -91,19 +85,7 @@ class VentaNotebookCard extends StatelessWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
-
               children: [
-                Text(
-                  '${notebook.seccion} - E${notebook.estante} - N${notebook.nivel}',
-
-                  style: const TextStyle(
-                    color: AppColors.textGrey,
-                    fontSize: 11,
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
                 EstadoBadge(status: notebook.estado, color: statusColor),
 
                 const SizedBox(height: 8),
@@ -111,27 +93,21 @@ class VentaNotebookCard extends StatelessWidget {
                 SizedBox(
                   width: 107,
                   height: 30,
-
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isSelected
                           ? Colors.red.shade400
                           : AppColors.primary,
-
                       foregroundColor: Colors.white,
-
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-
                     onPressed: notebook.estado == 'Disponible'
                         ? onToggleSelection
                         : null,
-
                     child: Text(
                       isSelected ? 'Quitar' : 'Seleccionar',
-
                       style: const TextStyle(fontSize: 11),
                     ),
                   ),

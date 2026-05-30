@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-import '../../../bodega/data/mock_status_history.dart';
 import '../../../bodega/domain/notebook_model.dart';
 import '../../../bodega/domain/status_history_model.dart';
+
+import '../../../bodega/data/repositories/notebook_repository.dart';
+import '../../../bodega/data/repositories/status_history_repository.dart';
 
 class TecnicoEstadoDialog extends StatefulWidget {
   final NotebookModel notebook;
@@ -24,19 +26,27 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
   final observacionesController = TextEditingController();
 
+  final NotebookRepository notebookRepository = NotebookRepository();
+  final StatusHistoryRepository historyRepository = StatusHistoryRepository();
+
   late String selectedStatus;
 
-  bool get isPendiente =>
-      widget.notebook.estado.toLowerCase() == 'pendiente de revisión';
+  bool isSaving = false;
 
-  bool get isEnReparacion =>
-      widget.notebook.estado.toLowerCase() == 'en reparación' ||
-      widget.notebook.estado.toLowerCase() == 'en reparacion';
+  late final bool esPendienteInicial;
+  late final bool esReparacionInicial;
+
+  bool get isPendiente => esPendienteInicial;
+  bool get isEnReparacion => esReparacionInicial;
 
   @override
   void initState() {
     super.initState();
+    final estadoInicial = widget.notebook.estado.toLowerCase().trim();
 
+    esPendienteInicial = estadoInicial == 'pendiente de revisión';
+    esReparacionInicial =
+        estadoInicial == 'en reparación' || estadoInicial == 'en reparacion';
     selectedStatus = isPendiente ? 'En reparación' : 'Disponible';
   }
 
@@ -79,7 +89,9 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
     );
   }
 
-  void guardarCambio() {
+  Future<void> guardarCambio() async {
+    if (isSaving) return;
+
     if (isPendiente && diagnosticoController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Debes ingresar un diagnóstico inicial')),
@@ -96,36 +108,60 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
     final estadoAnterior = widget.notebook.estado;
 
-    widget.notebook.estado = selectedStatus;
+    setState(() {
+      isSaving = true;
+    });
 
-    final history = StatusHistoryModel(
-      codigoNotebook: widget.notebook.codigo,
-      estadoAnterior: estadoAnterior,
-      estadoNuevo: selectedStatus,
-      usuarioResponsable: 'Técnico',
-      fecha: DateTime.now(),
-      diagnostico: diagnosticoController.text.trim(),
-      accionesRealizadas: accionesController.text.trim(),
-      observacion: isPendiente
-          ? 'Diagnóstico inicial registrado'
-          : observacionesController.text.trim().isEmpty
-          ? 'Cambio de estado realizado por técnico'
-          : observacionesController.text.trim(),
-    );
+    try {
+      widget.notebook.estado = selectedStatus;
 
-    mockStatusHistory.add(history);
+      await notebookRepository.updateNotebook(widget.notebook);
 
-    Navigator.pop(context, true);
+      final history = StatusHistoryModel(
+        codigoNotebook: widget.notebook.codigo,
+        estadoAnterior: estadoAnterior,
+        estadoNuevo: selectedStatus,
+        usuarioResponsable: 'Técnico',
+        fecha: DateTime.now(),
+        diagnostico: diagnosticoController.text.trim(),
+        accionesRealizadas: accionesController.text.trim(),
+        observacion: isPendiente
+            ? 'Diagnóstico inicial registrado'
+            : observacionesController.text.trim().isEmpty
+            ? 'Cambio de estado realizado por técnico'
+            : observacionesController.text.trim(),
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isPendiente
-              ? 'Notebook enviado a reparación'
-              : 'Estado actualizado correctamente',
+      await historyRepository.addHistory(history);
+
+      if (!mounted) return;
+
+      Navigator.pop(context, true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            estadoAnterior.toLowerCase().trim() == 'pendiente de revisión'
+                ? 'Notebook enviado a reparación'
+                : 'Estado actualizado correctamente',
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      widget.notebook.estado = estadoAnterior;
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al guardar cambio: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSaving = false;
+        });
+      }
+    }
   }
 
   @override
@@ -136,19 +172,14 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
     return Dialog(
       backgroundColor: AppColors.white,
-
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-
       child: SizedBox(
         width: 420,
         height: isPendiente ? 280 : 430,
-
         child: Padding(
           padding: const EdgeInsets.all(20),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
               Text(title, style: AppTextStyles.sectionTitle),
 
@@ -185,34 +216,31 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
                         DropdownButtonFormField<String>(
                           initialValue: selectedStatus,
-
                           decoration: const InputDecoration(
                             labelText: 'Nuevo estado',
                             border: OutlineInputBorder(),
                           ),
-
                           items: const [
                             DropdownMenuItem(
                               value: 'Disponible',
                               child: Text('Disponible'),
                             ),
-
                             DropdownMenuItem(
                               value: 'En reparación',
                               child: Text('En reparación'),
                             ),
-
                             DropdownMenuItem(
                               value: 'Merma',
                               child: Text('Merma'),
                             ),
                           ],
-
-                          onChanged: (value) {
-                            setState(() {
-                              selectedStatus = value!;
-                            });
-                          },
+                          onChanged: isSaving
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    selectedStatus = value!;
+                                  });
+                                },
                         ),
                       ],
                     ],
@@ -224,11 +252,11 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
-
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-
+                    onPressed: isSaving
+                        ? null
+                        : () => Navigator.pop(context, false),
                     child: const Text('Cancelar'),
                   ),
 
@@ -238,10 +266,14 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                     ),
-
-                    onPressed: guardarCambio,
-
-                    child: const Text('Guardar', style: AppTextStyles.button),
+                    onPressed: isSaving ? null : guardarCambio,
+                    child: isSaving
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Guardar', style: AppTextStyles.button),
                   ),
                 ],
               ),

@@ -5,8 +5,11 @@ class NotebookFirestoreService {
   final CollectionReference notebooks = FirebaseFirestore.instance.collection(
     'notebooks',
   );
+
   Stream<List<NotebookModel>> getNotebooks() {
-    return notebooks.snapshots().map((snapshot) {
+    return notebooks.orderBy('fechaIngreso', descending: true).snapshots().map((
+      snapshot,
+    ) {
       return snapshot.docs.map((doc) {
         return NotebookModel.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();
@@ -18,9 +21,11 @@ class NotebookFirestoreService {
         .where('codigo', isEqualTo: codigo)
         .limit(1)
         .get();
+
     if (querySnapshot.docs.isEmpty) {
       return null;
     }
+
     return NotebookModel.fromMap(
       querySnapshot.docs.first.data() as Map<String, dynamic>,
     );
@@ -35,14 +40,37 @@ class NotebookFirestoreService {
         .where('codigo', isEqualTo: notebook.codigo)
         .limit(1)
         .get();
+
     if (querySnapshot.docs.isEmpty) {
       throw Exception('Notebook no encontrado');
     }
+
     await notebooks.doc(querySnapshot.docs.first.id).update(notebook.toMap());
   }
 
+  Future<void> updateEstadoNotebook({
+    required String codigo,
+    required String nuevoEstado,
+  }) async {
+    final querySnapshot = await notebooks
+        .where('codigo', isEqualTo: codigo)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) {
+      throw Exception('Notebook no encontrado');
+    }
+
+    await notebooks.doc(querySnapshot.docs.first.id).update({
+      'estado': nuevoEstado,
+    });
+  }
+
   Future<List<NotebookModel>> getNotebooksOnce() async {
-    final snapshot = await notebooks.get();
+    final snapshot = await notebooks
+        .orderBy('fechaIngreso', descending: true)
+        .get();
+
     return snapshot.docs.map((doc) {
       return NotebookModel.fromMap(doc.data() as Map<String, dynamic>);
     }).toList();
