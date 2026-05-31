@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'forgot_password_screen.dart';
 
 import '../../domain/user_model.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -210,7 +211,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _isLoading
                           ? null
                           : () {
-                              _showMessage('Función de recuperación pendiente');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ForgotPasswordScreen(),
+                                ),
+                              );
                             },
                       child: const Text(
                         '¿Olvidaste tu contraseña?',
