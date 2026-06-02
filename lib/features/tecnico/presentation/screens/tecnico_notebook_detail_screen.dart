@@ -346,10 +346,6 @@ class _TecnicoNotebookDetailScreenState
   }
 
   Widget _buildBotonTecnico() {
-    if (!isPendiente && !isEnReparacion) {
-      return const SizedBox();
-    }
-
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -364,7 +360,11 @@ class _TecnicoNotebookDetailScreenState
         ),
         onPressed: _abrirDialogoTecnico,
         child: Text(
-          isPendiente ? 'Iniciar revisión' : 'Actualizar estado',
+          isPendiente
+              ? 'Iniciar revisión'
+              : isEnReparacion
+              ? 'Actualizar estado'
+              : 'Corregir estado',
           style: AppTextStyles.button,
         ),
       ),

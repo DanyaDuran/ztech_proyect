@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
+import 'package:ztech_flutter__app/core/session/current_user.dart';
+import 'package:ztech_flutter__app/features/admin/data/services/system_event_firestore_service.dart';
+import 'package:ztech_flutter__app/features/admin/domain/system_event_model.dart';
 
 class NotebookFirestoreService {
   final CollectionReference notebooks = FirebaseFirestore.instance.collection(
@@ -33,6 +36,16 @@ class NotebookFirestoreService {
 
   Future<void> addNotebook(NotebookModel notebook) async {
     await notebooks.add(notebook.toMap());
+
+    await SystemEventFirestoreService().addEvent(
+      SystemEventModel(
+        usuario: CurrentUser.user?.correo ?? 'Usuario desconocido',
+        tipoEvento: 'Ingreso de inventario',
+        modulo: 'Bodega',
+        detalle: 'Se registró el notebook ${notebook.codigo}',
+        fecha: DateTime.now(),
+      ),
+    );
   }
 
   Future<void> updateNotebook(NotebookModel notebook) async {

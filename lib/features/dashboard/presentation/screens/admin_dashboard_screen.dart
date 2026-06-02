@@ -32,13 +32,10 @@ class AdminDashboardScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       drawer: const SidebarMenu(currentRoute: '/dashboard'),
       appBar: const CustomAppBar(title: 'Dashboard'),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppDimensions.screenPadding),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-
           children: [
             const Text(
               'Resumen general del sistema',

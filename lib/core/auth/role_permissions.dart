@@ -2,7 +2,7 @@ import '../../app/router/routes.dart';
 
 class RolePermissions {
   static final Map<String, List<String>> permissions = {
-    'super_admin': [AppRoutes.admin],
+    'super_admin': [AppRoutes.admin, AppRoutes.eventos],
     'admin': [AppRoutes.dashboard, AppRoutes.reportes],
     'bodega': [AppRoutes.bodega],
     'tecnico': [AppRoutes.tecnico],

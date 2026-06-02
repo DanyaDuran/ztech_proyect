@@ -5,6 +5,8 @@ import 'package:ztech_flutter__app/core/theme/theme.dart';
 import 'package:ztech_flutter__app/shared/widgets/dashboard/widgets.dart';
 import 'package:ztech_flutter__app/features/dashboard/data/dashboard_repository.dart';
 import 'package:ztech_flutter__app/features/dashboard/domain/models/dashboard_stat_item.dart';
+import 'package:ztech_flutter__app/features/bodega/data/repositories/status_history_repository.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/status_history_model.dart';
 
 class DashboardMiddleSection extends StatelessWidget {
   final VoidCallback onShowMessage;
@@ -69,7 +71,9 @@ class DashboardMiddleSection extends StatelessWidget {
                 'Notebooks por estado',
                 style: AppTextStyles.sectionTitle,
               ),
+
               const SizedBox(height: AppDimensions.sectionSpacing),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -124,7 +128,9 @@ class DashboardMiddleSection extends StatelessWidget {
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 32),
+
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: stats.map((stat) {
@@ -151,50 +157,82 @@ class DashboardMiddleSection extends StatelessWidget {
   }
 
   Widget _buildRecentActivityCard() {
-    final activities = DashboardRepository.getActivities();
+    final historyRepository = StatusHistoryRepository();
 
     return DashboardCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: StreamBuilder<List<StatusHistoryModel>>(
+        stream: historyRepository.getHistory(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Text(
+              'Error al cargar historial de cambios',
+              style: AppTextStyles.subtitle,
+            );
+          }
+
+          final history = (snapshot.data ?? []).toList()
+            ..sort((a, b) => b.fecha.compareTo(a.fecha));
+
+          final recentHistory = history.take(5).toList();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Expanded(
-                child: Text(
-                  'Historial de cambios',
-                  style: AppTextStyles.sectionTitle,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              TextButton(
-                onPressed: onShowMessage,
-                child: const Text('Ver todo', style: AppTextStyles.filterText),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppDimensions.inputSpacing),
-          if (activities.isEmpty)
-            const Text('No hay actividad reciente')
-          else
-            ...activities.asMap().entries.map((entry) {
-              final index = entry.key;
-              final activity = entry.value;
-
-              return Column(
+              Row(
                 children: [
-                  DashboardActivityItem(
-                    icon: activity.icon,
-                    iconColor: activity.iconColor,
-                    title: activity.title,
-                    subtitle: activity.subtitle,
-                    time: activity.time,
+                  const Expanded(
+                    child: Text(
+                      'Historial de cambios',
+                      style: AppTextStyles.sectionTitle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  if (index != activities.length - 1) const Divider(height: 24),
                 ],
-              );
-            }),
-        ],
+              ),
+
+              const SizedBox(height: AppDimensions.inputSpacing),
+
+              if (recentHistory.isEmpty)
+                const Text(
+                  'No hay actividad reciente',
+                  style: AppTextStyles.body,
+                )
+              else
+                ...recentHistory.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final historyItem = entry.value;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Notebook ${historyItem.codigoNotebook}',
+                        style: AppTextStyles.body.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        '${historyItem.estadoAnterior} → ${historyItem.estadoNuevo}',
+                        style: AppTextStyles.body,
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      if (index != recentHistory.length - 1)
+                        const Divider(height: 24),
+                    ],
+                  );
+                }),
+            ],
+          );
+        },
       ),
     );
   }
