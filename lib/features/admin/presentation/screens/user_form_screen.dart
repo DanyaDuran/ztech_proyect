@@ -6,6 +6,9 @@ import 'package:ztech_flutter__app/core/theme/theme.dart';
 import 'package:ztech_flutter__app/features/auth/domain/user_model.dart';
 import 'package:ztech_flutter__app/features/auth/data/services/user_firestore_service.dart';
 import 'package:ztech_flutter__app/features/admin/domain/user_service.dart';
+import 'package:ztech_flutter__app/core/session/current_user.dart';
+import 'package:ztech_flutter__app/features/admin/data/services/system_event_firestore_service.dart';
+import 'package:ztech_flutter__app/features/admin/domain/system_event_model.dart';
 
 class UserFormScreen extends StatefulWidget {
   final UserModel? userToEdit;
@@ -95,6 +98,16 @@ class _UserFormScreenState extends State<UserFormScreen> {
 
         await _firestoreService.actualizarUsuario(updatedUser);
 
+        await SystemEventFirestoreService().addEvent(
+          SystemEventModel(
+            usuario: CurrentUser.user?.correo ?? 'Usuario desconocido',
+            tipoEvento: 'Edición de usuario',
+            modulo: 'Admin',
+            detalle: 'Se modificó el usuario $correo',
+            fecha: DateTime.now(),
+          ),
+        );
+
         if (!mounted) return;
         Navigator.pop(context, true);
         return;
@@ -111,6 +124,16 @@ class _UserFormScreenState extends State<UserFormScreen> {
         correo: correo,
         rol: _rolSeleccionado,
         activo: _activo,
+      );
+
+      await SystemEventFirestoreService().addEvent(
+        SystemEventModel(
+          usuario: CurrentUser.user?.correo ?? 'Usuario desconocido',
+          tipoEvento: 'Creación de usuario',
+          modulo: 'Admin',
+          detalle: 'Se creó el usuario $correo con rol $_rolSeleccionado',
+          fecha: DateTime.now(),
+        ),
       );
 
       if (!mounted) return;

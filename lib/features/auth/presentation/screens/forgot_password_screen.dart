@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../admin/data/services/system_event_firestore_service.dart';
+import '../../../admin/domain/system_event_model.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_validators.dart';
@@ -53,6 +55,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
 
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+
+      await SystemEventFirestoreService().addEvent(
+        SystemEventModel(
+          usuario: email,
+          tipoEvento: 'Recuperación de contraseña solicitada',
+          modulo: 'Auth',
+          detalle: 'Se envió correo de recuperación de contraseña',
+          fecha: DateTime.now(),
+        ),
+      );
 
       if (!mounted) return;
 

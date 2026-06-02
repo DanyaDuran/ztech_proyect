@@ -10,6 +10,9 @@ import '../../../../shared/styles/input_decorations.dart';
 import '../../../../core/session/current_user.dart';
 import '../../../../core/auth/role_permissions.dart';
 
+import '../../../admin/data/services/system_event_firestore_service.dart';
+import '../../../admin/domain/system_event_model.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -62,9 +65,9 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = userDoc.data()!;
 
       final user = UserModel(
+        id: uid,
         nombre: data['nombre'] ?? '',
         correo: data['correo'] ?? email,
-
         rol: data['rol'] ?? '',
         activo: data['activo'] ?? false,
       );
@@ -83,6 +86,18 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, route);
     } on FirebaseAuthException {
+      try {
+        await SystemEventFirestoreService().addEvent(
+          SystemEventModel(
+            usuario: email,
+            tipoEvento: 'Intento fallido de acceso',
+            modulo: 'Auth',
+            detalle: 'Credenciales incorrectas al iniciar sesión',
+            fecha: DateTime.now(),
+          ),
+        );
+      } catch (_) {}
+
       _showMessage('Correo o contraseña incorrectos');
     } catch (e) {
       _showMessage('Error al iniciar sesión');

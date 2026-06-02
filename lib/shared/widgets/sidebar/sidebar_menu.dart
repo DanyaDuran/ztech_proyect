@@ -47,6 +47,12 @@ class SidebarMenu extends StatelessWidget {
         title: 'Usuarios',
         route: AppRoutes.admin,
       ),
+
+      _SidebarItem(
+        icon: Icons.event_note_outlined,
+        title: 'Eventos',
+        route: AppRoutes.eventos,
+      ),
     ];
 
     final menuItems = allMenuItems.where((item) {

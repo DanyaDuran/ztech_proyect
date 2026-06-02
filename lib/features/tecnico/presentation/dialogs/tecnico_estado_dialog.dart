@@ -3,12 +3,16 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/session/current_user.dart';
 
 import '../../../bodega/domain/notebook_model.dart';
 import '../../../bodega/domain/status_history_model.dart';
 
 import '../../../bodega/data/repositories/notebook_repository.dart';
 import '../../../bodega/data/repositories/status_history_repository.dart';
+
+import '../../../admin/data/services/system_event_firestore_service.dart';
+import '../../../admin/domain/system_event_model.dart';
 
 class TecnicoEstadoDialog extends StatefulWidget {
   final NotebookModel notebook;
@@ -38,16 +42,19 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
   bool get isPendiente => esPendienteInicial;
   bool get isEnReparacion => esReparacionInicial;
+  bool get isCorreccion => !isPendiente && !isEnReparacion;
 
   @override
   void initState() {
     super.initState();
+
     final estadoInicial = widget.notebook.estado.toLowerCase().trim();
 
     esPendienteInicial = estadoInicial == 'pendiente de revisión';
     esReparacionInicial =
         estadoInicial == 'en reparación' || estadoInicial == 'en reparacion';
-    selectedStatus = isPendiente ? 'En reparación' : 'Disponible';
+
+    selectedStatus = isPendiente ? 'En reparación' : widget.notebook.estado;
   }
 
   @override
@@ -55,7 +62,6 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
     diagnosticoController.dispose();
     accionesController.dispose();
     observacionesController.dispose();
-
     super.dispose();
   }
 
@@ -106,7 +112,25 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
       return;
     }
 
+    if (isCorreccion && observacionesController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Debes ingresar una observación para corregir el estado',
+          ),
+        ),
+      );
+      return;
+    }
+
     final estadoAnterior = widget.notebook.estado;
+
+    if (estadoAnterior == selectedStatus) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecciona un estado diferente')),
+      );
+      return;
+    }
 
     setState(() {
       isSaving = true;
@@ -117,16 +141,31 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
       await notebookRepository.updateNotebook(widget.notebook);
 
+      await SystemEventFirestoreService().addEvent(
+        SystemEventModel(
+          usuario: CurrentUser.user?.correo ?? 'Usuario desconocido',
+          tipoEvento: isCorreccion
+              ? 'Corrección de estado'
+              : 'Cambio de estado',
+          modulo: 'Técnico',
+          detalle:
+              'Notebook ${widget.notebook.codigo} cambió de "$estadoAnterior" a "$selectedStatus"',
+          fecha: DateTime.now(),
+        ),
+      );
+
       final history = StatusHistoryModel(
         codigoNotebook: widget.notebook.codigo,
         estadoAnterior: estadoAnterior,
         estadoNuevo: selectedStatus,
-        usuarioResponsable: 'Técnico',
+        usuarioResponsable: CurrentUser.user?.correo ?? 'Técnico',
         fecha: DateTime.now(),
         diagnostico: diagnosticoController.text.trim(),
         accionesRealizadas: accionesController.text.trim(),
         observacion: isPendiente
             ? 'Diagnóstico inicial registrado'
+            : isCorreccion
+            ? 'Corrección de estado: ${observacionesController.text.trim()}'
             : observacionesController.text.trim().isEmpty
             ? 'Cambio de estado realizado por técnico'
             : observacionesController.text.trim(),
@@ -141,7 +180,9 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            estadoAnterior.toLowerCase().trim() == 'pendiente de revisión'
+            isCorreccion
+                ? 'Estado corregido correctamente'
+                : estadoAnterior.toLowerCase().trim() == 'pendiente de revisión'
                 ? 'Notebook enviado a reparación'
                 : 'Estado actualizado correctamente',
           ),
@@ -168,7 +209,9 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
   Widget build(BuildContext context) {
     final title = isPendiente
         ? 'Iniciar revisión técnica'
-        : 'Actualizar estado técnico';
+        : isEnReparacion
+        ? 'Actualizar estado técnico'
+        : 'Corregir estado';
 
     return Dialog(
       backgroundColor: AppColors.white,
@@ -228,6 +271,50 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                             DropdownMenuItem(
                               value: 'En reparación',
                               child: Text('En reparación'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Merma',
+                              child: Text('Merma'),
+                            ),
+                          ],
+                          onChanged: isSaving
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    selectedStatus = value!;
+                                  });
+                                },
+                        ),
+                      ],
+
+                      if (isCorreccion) ...[
+                        buildFixedTextArea(
+                          controller: observacionesController,
+                          label: 'Motivo de corrección',
+                          hint:
+                              'Ej: Estado asignado por error, se corrige manualmente',
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        DropdownButtonFormField<String>(
+                          initialValue: selectedStatus,
+                          decoration: const InputDecoration(
+                            labelText: 'Nuevo estado',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Pendiente de revisión',
+                              child: Text('Pendiente de revisión'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'En reparación',
+                              child: Text('En reparación'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Disponible',
+                              child: Text('Disponible'),
                             ),
                             DropdownMenuItem(
                               value: 'Merma',
