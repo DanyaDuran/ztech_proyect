@@ -20,8 +20,8 @@ class AppValidators {
       return 'La contraseña es obligatoria';
     }
 
-    if (password.length < 8) {
-      return 'La contraseña debe tener mínimo 8 caracteres';
+    if (password.length < 6) {
+      return 'La contraseña debe tener mínimo 6 caracteres';
     }
 
     return null;

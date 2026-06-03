@@ -10,14 +10,12 @@ class UserTableRow extends StatelessWidget {
   final UserModel user;
 
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
   final VoidCallback onToggleStatus;
 
   const UserTableRow({
     super.key,
     required this.user,
     required this.onEdit,
-    required this.onDelete,
     required this.onToggleStatus,
   });
 
@@ -49,7 +47,7 @@ class UserTableRow extends StatelessWidget {
 
           Expanded(child: UserStatusBadge(activo: user.activo)),
 
-          if (user.rol != 'superusuario')
+          if (user.rol != 'super_admin')
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: AppColors.secondary),
 
@@ -61,10 +59,6 @@ class UserTableRow extends StatelessWidget {
                 if (value == 'toggle') {
                   onToggleStatus();
                 }
-
-                if (value == 'delete') {
-                  onDelete();
-                }
               },
 
               itemBuilder: (context) => [
@@ -74,8 +68,6 @@ class UserTableRow extends StatelessWidget {
                   value: 'toggle',
                   child: Text(user.activo ? 'Desactivar' : 'Activar'),
                 ),
-
-                const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
               ],
             )
           else

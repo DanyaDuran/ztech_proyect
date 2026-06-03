@@ -7,17 +7,35 @@ class EstadoBadge extends StatelessWidget {
 
   const EstadoBadge({super.key, required this.status, required this.color});
 
+  String getDisplayStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'pendiente de revisión':
+        return 'En revisión';
+
+      case 'en reparación':
+        return 'Reparación';
+
+      default:
+        return status;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
       ),
-
-      child: Text(status, style: AppTextStyles.badge.copyWith(color: color)),
+      child: SizedBox(
+        width: 90,
+        child: Text(
+          getDisplayStatus(status),
+          textAlign: TextAlign.center,
+          style: AppTextStyles.badge.copyWith(color: color),
+        ),
+      ),
     );
   }
 }

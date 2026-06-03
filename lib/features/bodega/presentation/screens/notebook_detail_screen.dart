@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_dimensions.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../domain/notebook_model.dart';
+import 'package:ztech_flutter__app/core/theme/theme.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
+
+import 'notebook_form_screen.dart';
 
 class NotebookDetailScreen extends StatelessWidget {
   final NotebookModel notebook;
 
   const NotebookDetailScreen({super.key, required this.notebook});
+
+  bool get puedeEditar => notebook.estado == 'Pendiente de revisión';
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +22,27 @@ class NotebookDetailScreen extends StatelessWidget {
         backgroundColor: AppColors.white,
         elevation: AppDimensions.appBarElevation,
         iconTheme: const IconThemeData(color: AppColors.secondary),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.edit,
+              color: puedeEditar ? AppColors.primary : AppColors.border,
+            ),
+            tooltip: puedeEditar
+                ? 'Editar notebook'
+                : 'Solo se pueden editar notebooks pendientes de revisión',
+            onPressed: puedeEditar
+                ? () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => NotebookFormScreen(notebook: notebook),
+                      ),
+                    );
+                  }
+                : null,
+          ),
+        ],
       ),
 
       body: SingleChildScrollView(
@@ -33,33 +56,21 @@ class NotebookDetailScreen extends StatelessWidget {
 
             _buildInfoTable(
               title: 'Especificaciones',
-
               rows: [
                 _DetailRow('Código interno', notebook.codigo),
-
                 _DetailRow(
                   'Fecha ingreso',
                   _formatDateTime(notebook.fechaIngreso),
                 ),
-
                 _DetailRow('Marca', notebook.marca),
-
                 _DetailRow('Línea', notebook.linea),
-
                 _DetailRow('Modelo', notebook.modelo),
-
                 _DetailRow('Procesador', notebook.procesador),
-
                 _DetailRow('Generación', notebook.generacion),
-
                 _DetailRow('RAM', notebook.ram),
-
                 _DetailRow('Almacenamiento', notebook.almacenamiento),
-
                 _DetailRow('Tarjeta gráfica', notebook.tarjetaGrafica),
-
                 _DetailRow('Estado', notebook.estado),
-
                 _DetailRow(
                   'Ubicación',
                   '${notebook.seccion} - '
@@ -73,13 +84,11 @@ class NotebookDetailScreen extends StatelessWidget {
 
             _buildInfoTable(
               title: 'Información de bodega',
-
               rows: [
                 _DetailRow(
                   'Descripción del problema',
                   notebook.descripcionProblema,
                 ),
-
                 _DetailRow(
                   'Observaciones de bodega',
                   notebook.observacionesBodega,
@@ -96,28 +105,21 @@ class NotebookDetailScreen extends StatelessWidget {
     return Card(
       color: AppColors.white,
       elevation: AppDimensions.cardElevation,
-
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
       ),
-
       child: Padding(
         padding: const EdgeInsets.all(AppDimensions.cardPadding),
-
         child: Column(
           children: [
             Container(
               width: 120,
               height: 85,
-
               decoration: BoxDecoration(
                 color: AppColors.inputBackground,
-
                 borderRadius: BorderRadius.circular(AppDimensions.radiusSmall),
-
                 border: Border.all(color: AppColors.border),
               ),
-
               child: const Icon(
                 Icons.laptop_mac,
                 size: 55,
@@ -130,7 +132,6 @@ class NotebookDetailScreen extends StatelessWidget {
             Text(
               '${notebook.marca} ${notebook.modelo}',
               textAlign: TextAlign.center,
-
               style: AppTextStyles.cardTitle.copyWith(
                 color: AppColors.textPrimary,
               ),
@@ -156,20 +157,16 @@ class NotebookDetailScreen extends StatelessWidget {
       case 'disponible':
         color = AppColors.statusAvailable;
         break;
-
       case 'en reparación':
       case 'en reparacion':
         color = AppColors.statusRepair;
         break;
-
       case 'vendido':
         color = AppColors.statusSold;
         break;
-
       case 'merma':
         color = AppColors.statusDiscarded;
         break;
-
       default:
         color = AppColors.statusPending;
     }

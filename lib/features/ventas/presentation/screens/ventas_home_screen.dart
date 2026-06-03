@@ -3,18 +3,20 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/notebook_utils.dart';
+
 import '../../../../shared/widgets/app_bar/custom_app_bar.dart';
 import '../../../../shared/widgets/search/campo_busqueda.dart';
 import '../../../../shared/widgets/sidebar/sidebar_menu.dart';
-import '../../../bodega/data/mock_notebooks.dart';
+
+import '../../../bodega/data/repositories/notebook_repository.dart';
 import '../../../bodega/domain/notebook_model.dart';
 
 import '../widgets/ventas_actions_section.dart';
 import '../widgets/ventas_info_banner.dart';
 import '../widgets/ventas_modal_filters.dart';
 import '../widgets/ventas_notebook_card.dart';
+
 import 'registrar_venta_screen.dart';
-import 'ventas_notebook_detail_screen.dart';
 
 class VentasHomeScreen extends StatefulWidget {
   const VentasHomeScreen({super.key});
@@ -24,48 +26,47 @@ class VentasHomeScreen extends StatefulWidget {
 }
 
 class _VentasHomeScreenState extends State<VentasHomeScreen> {
-  late List<NotebookModel> notebooks;
-  late List<NotebookModel> filteredNotebooks;
+  final NotebookRepository repository = NotebookRepository();
 
-  List<NotebookModel> selectedNotebooks = [];
+  final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocusNode = FocusNode();
 
-  String searchQuery = '';
+  final ValueNotifier<String> searchQuery = ValueNotifier<String>('');
+  final ValueNotifier<String?> selectedNotebookCodigo = ValueNotifier<String?>(
+    null,
+  );
+
+  NotebookModel? selectedNotebook;
   String? activeFilter;
 
   @override
-  void initState() {
-    super.initState();
-
-    notebooks = mockNotebooks;
-    applyFilters();
-  }
-
-  List<NotebookModel> getBaseList() {
-    if (activeFilter != null) {
-      return notebooks.where((n) => n.estado == activeFilter).toList();
-    }
-
-    return notebooks.where((n) => n.estado == 'Disponible').toList();
-  }
-
-  void applyFilters() {
-    final baseList = getBaseList();
-
-    filteredNotebooks = NotebookUtils.searchNotebooks(
-      notebooks: baseList,
-      query: searchQuery,
-    );
+  void dispose() {
+    searchController.dispose();
+    searchFocusNode.dispose();
+    searchQuery.dispose();
+    selectedNotebookCodigo.dispose();
+    super.dispose();
   }
 
   void searchNotebook(String query) {
-    setState(() {
-      searchQuery = query;
-      applyFilters();
-    });
+    searchQuery.value = query;
+  }
+
+  List<NotebookModel> getBaseList(List<NotebookModel> notebooks) {
+    if (activeFilter != null) {
+      return notebooks.where((n) {
+        return NotebookUtils.normalizeText(n.estado) ==
+            NotebookUtils.normalizeText(activeFilter!);
+      }).toList();
+    }
+
+    return notebooks.where((n) {
+      return NotebookUtils.normalizeText(n.estado) == 'disponible';
+    }).toList();
   }
 
   void toggleSelection(NotebookModel notebook) {
-    if (notebook.estado != 'Disponible') {
+    if (NotebookUtils.normalizeText(notebook.estado) != 'disponible') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Solo se pueden seleccionar notebooks disponibles'),
@@ -74,48 +75,42 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
       return;
     }
 
-    setState(() {
-      if (selectedNotebooks.contains(notebook)) {
-        selectedNotebooks.remove(notebook);
-      } else {
-        selectedNotebooks.clear();
-        selectedNotebooks.add(notebook);
-      }
-    });
+    if (selectedNotebookCodigo.value == notebook.codigo) {
+      selectedNotebookCodigo.value = null;
+      selectedNotebook = null;
+    } else {
+      selectedNotebookCodigo.value = notebook.codigo;
+      selectedNotebook = notebook;
+    }
   }
 
-  void registrarSalida() {
-    if (selectedNotebooks.isEmpty) {
+  Future<void> registrarSalida() async {
+    if (selectedNotebook == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor, selecciona un notebook')),
       );
       return;
     }
 
-    final notebook = selectedNotebooks.first;
+    final notebook = selectedNotebook!;
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => VentasNotebookDetailScreen(
+        builder: (_) => RegistrarVentaScreen(
           notebook: notebook,
-          onRegistrarVenta: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => RegistrarVentaScreen(
-                  notebook: notebook,
-                  onConfirmarVenta: () {
-                    setState(() {
-                      notebook.estado = 'Vendido';
-                      selectedNotebooks.clear();
-                      activeFilter = null;
-                      applyFilters();
-                    });
-                  },
-                ),
-              ),
-            );
+          onConfirmarVenta: () async {
+            notebook.estado = 'Vendido';
+
+            await repository.updateNotebook(notebook);
+
+            if (!mounted) return;
+
+            setState(() {
+              selectedNotebookCodigo.value = null;
+              selectedNotebook = null;
+              activeFilter = null;
+            });
           },
         ),
       ),
@@ -125,16 +120,16 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
   void applyStatusFilter(String status) {
     setState(() {
       activeFilter = status;
-      selectedNotebooks.clear();
-      applyFilters();
+      selectedNotebookCodigo.value = null;
+      selectedNotebook = null;
     });
   }
 
   void resetFilters() {
     setState(() {
       activeFilter = null;
-      selectedNotebooks.clear();
-      applyFilters();
+      selectedNotebookCodigo.value = null;
+      selectedNotebook = null;
     });
   }
 
@@ -156,33 +151,59 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
       backgroundColor: AppColors.background,
       drawer: const SidebarMenu(currentRoute: '/ventas'),
       appBar: const CustomAppBar(title: 'Ventas'),
+      body: StreamBuilder<List<NotebookModel>>(
+        stream: repository.getNotebooks(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Error al cargar notebooks para ventas',
+                style: AppTextStyles.subtitle,
+              ),
+            );
+          }
 
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Registro de salidas de notebooks',
-              style: AppTextStyles.subtitle,
+          final notebooks = snapshot.data ?? [];
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Registro de salidas de notebooks',
+                  style: AppTextStyles.subtitle,
+                ),
+
+                const SizedBox(height: 16),
+
+                const VentasInfoBanner(),
+
+                const SizedBox(height: 20),
+
+                _buildSearchAndFilters(),
+
+                const SizedBox(height: 24),
+
+                _buildListHeader(title),
+
+                const SizedBox(height: 12),
+
+                _buildNotebookList(notebooks),
+
+                const SizedBox(height: 16),
+
+                VentasActionsSection(onRegistrarSalida: registrarSalida),
+
+                const SizedBox(height: 24),
+              ],
             ),
-
-            const SizedBox(height: 16),
-
-            const VentasInfoBanner(),
-
-            const SizedBox(height: 20),
-            _buildSearchAndFilters(),
-            const SizedBox(height: 24),
-            _buildListHeader(title),
-            const SizedBox(height: 12),
-            _buildNotebookList(),
-            const SizedBox(height: 16),
-            VentasActionsSection(onRegistrarSalida: registrarSalida),
-            const SizedBox(height: 24),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -196,6 +217,8 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
           return Column(
             children: [
               CampoBusqueda(
+                controller: searchController,
+                focusNode: searchFocusNode,
                 hint: 'Buscar por código, marca o modelo...',
                 onChanged: searchNotebook,
               ),
@@ -209,6 +232,8 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
           children: [
             Expanded(
               child: CampoBusqueda(
+                controller: searchController,
+                focusNode: searchFocusNode,
                 hint: 'Buscar por código, marca o modelo...',
                 onChanged: searchNotebook,
               ),
@@ -236,56 +261,78 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
   }
 
   Widget _buildListHeader(String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.secondary,
-          ),
-        ),
-        if (selectedNotebooks.isNotEmpty)
-          Text(
-            '${selectedNotebooks.length} seleccionado',
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
+    return ValueListenableBuilder<String?>(
+      valueListenable: selectedNotebookCodigo,
+      builder: (context, selectedCodigo, _) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.secondary,
+              ),
             ),
-          ),
-      ],
+            if (selectedCodigo != null)
+              const Text(
+                '1 seleccionado',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildNotebookList() {
-    if (filteredNotebooks.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Center(
-          child: Text(
-            activeFilter == 'Vendido'
-                ? 'No hay notebooks vendidos'
-                : 'No hay notebooks disponibles',
-          ),
-        ),
-      );
-    }
+  Widget _buildNotebookList(List<NotebookModel> notebooks) {
+    return ValueListenableBuilder<String>(
+      valueListenable: searchQuery,
+      builder: (context, query, _) {
+        final baseList = getBaseList(notebooks);
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: filteredNotebooks.length,
-      itemBuilder: (context, index) {
-        final notebook = filteredNotebooks[index];
+        final filteredNotebooks = NotebookUtils.searchNotebooks(
+          notebooks: baseList,
+          query: query,
+        );
 
-        return VentaNotebookCard(
-          notebook: notebook,
-          isSelected: selectedNotebooks.contains(notebook),
-          onToggleSelection: () {
-            toggleSelection(notebook);
+        if (filteredNotebooks.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Center(
+              child: Text(
+                activeFilter == 'Vendido'
+                    ? 'No hay notebooks vendidos'
+                    : 'No hay notebooks disponibles',
+              ),
+            ),
+          );
+        }
+
+        return ValueListenableBuilder<String?>(
+          valueListenable: selectedNotebookCodigo,
+          builder: (context, selectedCodigo, _) {
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filteredNotebooks.length,
+              itemBuilder: (context, index) {
+                final notebook = filteredNotebooks[index];
+
+                return VentaNotebookCard(
+                  notebook: notebook,
+                  isSelected: selectedCodigo == notebook.codigo,
+                  onToggleSelection: () {
+                    toggleSelection(notebook);
+                  },
+                );
+              },
+            );
           },
         );
       },

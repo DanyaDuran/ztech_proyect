@@ -8,30 +8,39 @@ class DashboardStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final stats = DashboardRepository.getStats();
+    return FutureBuilder(
+      future: DashboardRepository.getStats(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final int crossAxisCount = constraints.maxWidth < 600 ? 2 : 4;
+        final stats = snapshot.data!;
 
-        return GridView.count(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: AppDimensions.inputSpacing,
-          mainAxisSpacing: AppDimensions.inputSpacing,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          childAspectRatio: constraints.maxWidth < 600 ? 0.95 : 1.1,
-          children: stats.map((stat) {
-            return DashboardStatCard(
-              title: stat.title,
-              count: stat.count.toString(),
-              icon: stat.icon,
-              iconColor: stat.iconColor,
-              trendText: stat.trendText,
-              trendIcon: stat.trendIcon,
-              trendColor: stat.trendColor,
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final int crossAxisCount = constraints.maxWidth < 600 ? 2 : 4;
+
+            return GridView.count(
+              crossAxisCount: crossAxisCount,
+              crossAxisSpacing: AppDimensions.inputSpacing,
+              mainAxisSpacing: AppDimensions.inputSpacing,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: constraints.maxWidth < 600 ? 0.95 : 1.1,
+              children: stats.map((stat) {
+                return DashboardStatCard(
+                  title: stat.title,
+                  count: stat.count.toString(),
+                  icon: stat.icon,
+                  iconColor: stat.iconColor,
+                  trendText: stat.trendText,
+                  trendIcon: stat.trendIcon,
+                  trendColor: stat.trendColor,
+                );
+              }).toList(),
             );
-          }).toList(),
+          },
         );
       },
     );

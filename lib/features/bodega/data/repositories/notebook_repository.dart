@@ -1,36 +1,25 @@
-import '../../domain/notebook_model.dart';
-import '../mock_notebooks.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
+import 'package:ztech_flutter__app/features/bodega/data/services/notebook_firestore_service.dart';
 
 class NotebookRepository {
-  Future<List<NotebookModel>> getNotebooks() async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    return mockNotebooks;
+  final NotebookFirestoreService _firestoreService = NotebookFirestoreService();
+  Stream<List<NotebookModel>> getNotebooks() {
+    return _firestoreService.getNotebooks();
   }
 
   Future<NotebookModel?> getNotebookByCodigo(String codigo) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    try {
-      return mockNotebooks.firstWhere((notebook) => notebook.codigo == codigo);
-    } catch (e) {
-      return null;
-    }
+    return await _firestoreService.getNotebookByCodigo(codigo);
   }
 
   Future<void> addNotebook(NotebookModel notebook) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    mockNotebooks.add(notebook);
+    await _firestoreService.addNotebook(notebook);
   }
 
   Future<void> updateNotebook(NotebookModel updatedNotebook) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-    final index = mockNotebooks.indexWhere(
-      (n) => n.codigo == updatedNotebook.codigo,
-    );
+    await _firestoreService.updateNotebook(updatedNotebook);
+  }
 
-    if (index != -1) {
-      mockNotebooks[index] = updatedNotebook;
-    } else {
-      throw Exception('Notebook no encontrado en el inventario');
-    }
+  Future<List<NotebookModel>> getNotebooksOnce() async {
+    return await _firestoreService.getNotebooksOnce();
   }
 }

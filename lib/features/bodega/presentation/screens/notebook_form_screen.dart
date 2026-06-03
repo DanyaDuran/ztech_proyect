@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:ztech_flutter__app/shared/styles/input_decorations.dart';
 
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/app_validators.dart';
-import '../../../../core/utils/code_generator.dart';
-import '../../../../core/utils/notebook_utils.dart';
-import '../../../../shared/widgets/forms/custom_dropdown_field.dart';
-import '../../../../shared/widgets/forms/custom_text_field.dart';
-import '../../../../shared/widgets/forms/form_section_title.dart';
-import '../../data/notebook_options.dart';
-import '../../data/repositories/notebook_repository.dart';
-import '../../domain/notebook_model.dart';
-import '../../../../shared/widgets/buttons/primary_action_button.dart';
-import '../../../../shared/widgets/forms/custom_multiline_text_field.dart';
+import 'package:ztech_flutter__app/core/theme/app_colors.dart';
+import 'package:ztech_flutter__app/core/utils/utils.dart';
+import 'package:ztech_flutter__app/shared/widgets/forms/widgets.dart';
+import 'package:ztech_flutter__app/shared/widgets/buttons/primary_action_button.dart';
+import 'package:ztech_flutter__app/features/bodega/data/notebook_options.dart';
+import 'package:ztech_flutter__app/features/bodega/data/repositories/notebook_repository.dart';
+import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
 
 class NotebookFormScreen extends StatefulWidget {
-  const NotebookFormScreen({super.key});
+  final NotebookModel? notebook;
+
+  const NotebookFormScreen({super.key, this.notebook});
 
   @override
   State<NotebookFormScreen> createState() => _NotebookFormScreenState();
@@ -23,7 +20,7 @@ class NotebookFormScreen extends StatefulWidget {
 
 class _NotebookFormScreenState extends State<NotebookFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _notebookRepository = NotebookRepository();
+  final NotebookRepository _notebookRepository = NotebookRepository();
 
   final codigoController = TextEditingController();
   final modeloController = TextEditingController();
@@ -46,10 +43,52 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
   bool _isLoading = false;
 
+  bool get esEdicion => widget.notebook != null;
+
+  final List<String> estadosDisponibles = ['Pendiente de revisión'];
+
   @override
   void initState() {
     super.initState();
-    _generarCodigoAutomatico();
+
+    if (esEdicion) {
+      _cargarDatosNotebook();
+    } else {
+      _generarCodigoAutomatico();
+    }
+  }
+
+  void _cargarDatosNotebook() {
+    final notebook = widget.notebook!;
+
+    codigoController.text = notebook.codigo;
+    modeloController.text = notebook.modelo;
+    descripcionProblemaController.text = notebook.descripcionProblema;
+    observacionesBodegaController.text = notebook.observacionesBodega;
+
+    marca = notebook.marca;
+    linea = notebook.linea;
+    generacion = notebook.generacion;
+    ram = notebook.ram;
+    almacenamiento = notebook.almacenamiento;
+    tarjetaGrafica = notebook.tarjetaGrafica;
+    seccion = notebook.seccion;
+    estante = notebook.estante;
+    nivel = notebook.nivel;
+    estado = 'Pendiente de revisión';
+
+    _cargarProcesador(notebook.procesador);
+  }
+
+  void _cargarProcesador(String procesador) {
+    if (procesador.startsWith('Intel Core')) {
+      familiaProcesador = 'Intel Core';
+      serieProcesador = procesador.replaceFirst('Intel Core', '').trim();
+    } else if (procesador.startsWith('AMD Ryzen')) {
+      familiaProcesador = 'AMD Ryzen';
+      final serie = procesador.replaceFirst('AMD', '').trim();
+      serieProcesador = serie;
+    }
   }
 
   @override
@@ -63,7 +102,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
   Future<void> _generarCodigoAutomatico() async {
     try {
-      final notebooks = await _notebookRepository.getNotebooks();
+      final notebooks = await _notebookRepository.getNotebooksOnce();
       final currentCount = notebooks.length;
       final newCode = CodeGenerator.generateNotebookCode(currentCount);
 
@@ -96,18 +135,36 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
     final notebook = _buildNotebookModel();
 
     try {
+      if (esEdicion) {
+        await _notebookRepository.updateNotebook(notebook);
+      } else {
+        await _notebookRepository.addNotebook(notebook);
+      }
+
       if (!mounted) return;
 
-      Navigator.pop(context, notebook);
-
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Notebook registrado correctamente')),
+        SnackBar(
+          content: Text(
+            esEdicion
+                ? 'Notebook actualizado correctamente'
+                : 'Notebook registrado correctamente',
+          ),
+        ),
       );
+
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error al guardar el notebook')),
+        SnackBar(
+          content: Text(
+            esEdicion
+                ? 'Error al actualizar el notebook'
+                : 'Error al guardar el notebook',
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -118,13 +175,31 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
     }
   }
 
+  String _buildProcesador() {
+    final familia = familiaProcesador?.trim() ?? '';
+    final serie = serieProcesador?.trim() ?? '';
+
+    if (familia.isEmpty) return serie;
+    if (serie.isEmpty) return familia;
+
+    if (familia == 'AMD Ryzen' && serie.startsWith('Ryzen')) {
+      return serie.replaceFirst('Ryzen', 'AMD Ryzen').trim();
+    }
+
+    if (familia == 'Intel Core' && !serie.startsWith('Intel')) {
+      return '$familia $serie'.trim();
+    }
+
+    return '$familia $serie'.trim();
+  }
+
   NotebookModel _buildNotebookModel() {
     return NotebookModel(
       codigo: codigoController.text.trim(),
       marca: marca ?? '',
       linea: linea ?? '',
       modelo: modeloController.text.trim(),
-      procesador: '${familiaProcesador ?? ''} ${serieProcesador ?? ''}'.trim(),
+      procesador: _buildProcesador(),
       generacion: generacion ?? '',
       ram: ram ?? '',
       almacenamiento: almacenamiento ?? '',
@@ -135,7 +210,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
       nivel: nivel ?? '',
       descripcionProblema: descripcionProblemaController.text.trim(),
       observacionesBodega: observacionesBodegaController.text.trim(),
-      fechaIngreso: DateTime.now(),
+      fechaIngreso: widget.notebook?.fechaIngreso ?? DateTime.now(),
     );
   }
 
@@ -178,9 +253,9 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.secondary,
         elevation: 0,
-        title: const Text(
-          'Registrar notebook',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          esEdicion ? 'Editar notebook' : 'Registrar notebook',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
 
@@ -196,13 +271,17 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 icon: Icons.badge_outlined,
               ),
 
-              CustomTextField(
+              TextFormField(
                 controller: codigoController,
-                label: 'Código Interno',
-                hint: 'Ej: ZT-001',
-                icon: Icons.qr_code,
+                readOnly: esEdicion,
                 validator: AppValidators.codigoNotebook,
+                decoration: customInputDecoration(
+                  label: 'Código Interno',
+                  icon: Icons.qr_code,
+                ).copyWith(hintText: 'Ej: ZT-001'),
               ),
+
+              const SizedBox(height: 16),
 
               Row(
                 children: [
@@ -239,10 +318,12 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
               ),
 
               const Divider(height: 32),
+
               const FormSectionTitle(
                 title: 'Especificaciones Técnicas',
                 icon: Icons.memory,
               ),
+
               CustomDropdownField(
                 label: 'Familia CPU',
                 icon: Icons.memory,
@@ -298,6 +379,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
               ),
 
               const Divider(height: 32),
+
               const FormSectionTitle(
                 title: 'Estado y Ubicación',
                 icon: Icons.location_on_outlined,
@@ -315,10 +397,10 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                   ),
                   iconEnabledColor: AppColors.primary,
                   decoration: customInputDecoration(
-                    label: 'Estado inicial',
+                    label: esEdicion ? 'Estado' : 'Estado inicial',
                     icon: Icons.info_outline,
                   ),
-                  items: NotebookOptions.estadosInicialesBodega.map((status) {
+                  items: estadosDisponibles.map((status) {
                     return DropdownMenuItem(
                       value: status,
                       child: Row(
@@ -374,10 +456,12 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
               ),
 
               const Divider(height: 32),
+
               const FormSectionTitle(
                 title: 'Detalles Adicionales',
                 icon: Icons.notes,
               ),
+
               CustomMultilineTextField(
                 controller: descripcionProblemaController,
                 label: 'Descripción del problema',
@@ -402,9 +486,9 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
               PrimaryActionButton(
                 isLoading: _isLoading,
-                text: 'Guardar notebook',
-                loadingText: 'Guardando...',
-                icon: Icons.save,
+                text: esEdicion ? 'Guardar cambios' : 'Guardar notebook',
+                loadingText: esEdicion ? 'Actualizando...' : 'Guardando...',
+                icon: esEdicion ? Icons.save_as : Icons.save,
                 onPressed: saveNotebook,
               ),
 
