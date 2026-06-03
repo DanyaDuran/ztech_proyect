@@ -46,6 +46,7 @@ class TecnicoNotebookCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: ListTile(
           contentPadding: const EdgeInsets.all(AppDimensions.cardPadding),
+
           leading: Container(
             width: 50,
             height: 50,
@@ -59,17 +60,26 @@ class TecnicoNotebookCard extends StatelessWidget {
               color: AppColors.secondary,
             ),
           ),
+
           title: Text(
             '${notebook.marca} ${notebook.modelo}',
             style: AppTextStyles.cardTitle,
           ),
+
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Código: ${notebook.codigo}', style: AppTextStyles.body),
+
                 const SizedBox(height: AppDimensions.spacingXSmall),
+
+                Text(
+                  'Ubicación: ${notebook.seccion} - Estante ${notebook.estante} - Nivel ${notebook.nivel}',
+                  style: AppTextStyles.body,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),

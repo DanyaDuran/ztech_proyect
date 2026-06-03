@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 
 import '../../../bodega/domain/notebook_model.dart';
 import '../../data/repositories/ventas_repository.dart';
+import '../../data/services/comprobante_salida_pdf_service.dart';
 import '../../domain/venta_model.dart';
 
 class RegistrarVentaScreen extends StatefulWidget {
@@ -113,6 +114,12 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
       if (!mounted) return;
 
       await widget.onConfirmarVenta();
+
+      if (!mounted) return;
+
+      await ComprobanteSalidaPdfService().generarComprobanteSalida(
+        notebook: widget.notebook,
+      );
 
       if (!mounted) return;
 

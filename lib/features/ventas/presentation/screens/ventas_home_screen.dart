@@ -17,7 +17,6 @@ import '../widgets/ventas_modal_filters.dart';
 import '../widgets/ventas_notebook_card.dart';
 
 import 'registrar_venta_screen.dart';
-import 'ventas_notebook_detail_screen.dart';
 
 class VentasHomeScreen extends StatefulWidget {
   const VentasHomeScreen({super.key});
@@ -98,30 +97,20 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => VentasNotebookDetailScreen(
+        builder: (_) => RegistrarVentaScreen(
           notebook: notebook,
-          onRegistrarVenta: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => RegistrarVentaScreen(
-                  notebook: notebook,
-                  onConfirmarVenta: () async {
-                    notebook.estado = 'Vendido';
+          onConfirmarVenta: () async {
+            notebook.estado = 'Vendido';
 
-                    await repository.updateNotebook(notebook);
+            await repository.updateNotebook(notebook);
 
-                    if (!mounted) return;
+            if (!mounted) return;
 
-                    setState(() {
-                      selectedNotebookCodigo.value = null;
-                      selectedNotebook = null;
-                      activeFilter = null;
-                    });
-                  },
-                ),
-              ),
-            );
+            setState(() {
+              selectedNotebookCodigo.value = null;
+              selectedNotebook = null;
+              activeFilter = null;
+            });
           },
         ),
       ),
@@ -189,16 +178,27 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
                   'Registro de salidas de notebooks',
                   style: AppTextStyles.subtitle,
                 ),
+
                 const SizedBox(height: 16),
+
                 const VentasInfoBanner(),
+
                 const SizedBox(height: 20),
+
                 _buildSearchAndFilters(),
+
                 const SizedBox(height: 24),
+
                 _buildListHeader(title),
+
                 const SizedBox(height: 12),
+
                 _buildNotebookList(notebooks),
+
                 const SizedBox(height: 16),
+
                 VentasActionsSection(onRegistrarSalida: registrarSalida),
+
                 const SizedBox(height: 24),
               ],
             ),

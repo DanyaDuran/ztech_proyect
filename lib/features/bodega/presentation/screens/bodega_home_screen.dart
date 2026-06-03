@@ -73,6 +73,19 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
           }
 
           final notebooks = snapshot.data ?? [];
+          notebooks.sort((a, b) {
+            if (a.estado == 'Pendiente de revisión' &&
+                b.estado != 'Pendiente de revisión') {
+              return -1;
+            }
+
+            if (a.estado != 'Pendiente de revisión' &&
+                b.estado == 'Pendiente de revisión') {
+              return 1;
+            }
+
+            return b.fechaIngreso.compareTo(a.fechaIngreso);
+          });
 
           return Padding(
             padding: const EdgeInsets.all(AppDimensions.screenPadding),

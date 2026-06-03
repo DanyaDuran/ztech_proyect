@@ -346,6 +346,28 @@ class _TecnicoNotebookDetailScreenState
   }
 
   Widget _buildBotonTecnico() {
+    final estado = notebook.estado.toLowerCase().trim();
+    final isMerma = estado == 'merma';
+
+    if (isMerma) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.border,
+            padding: const EdgeInsets.symmetric(
+              vertical: AppDimensions.buttonVerticalPadding,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+            ),
+          ),
+          onPressed: null,
+          child: const Text('Equipo dado de baja', style: AppTextStyles.button),
+        ),
+      );
+    }
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(

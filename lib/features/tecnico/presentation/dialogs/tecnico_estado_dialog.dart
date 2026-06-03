@@ -24,10 +24,35 @@ class TecnicoEstadoDialog extends StatefulWidget {
 }
 
 class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
+  Future<bool> _confirmarMerma() async {
+    final resultado = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirmar baja del equipo'),
+          content: const Text(
+            '¿Está seguro de que desea dar de baja este notebook?\n\n'
+            'Esta acción registrará el equipo como Merma.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Confirmar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return resultado ?? false;
+  }
+
   final diagnosticoController = TextEditingController();
-
   final accionesController = TextEditingController();
-
   final observacionesController = TextEditingController();
 
   final NotebookRepository notebookRepository = NotebookRepository();
@@ -43,6 +68,8 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
   bool get isPendiente => esPendienteInicial;
   bool get isEnReparacion => esReparacionInicial;
   bool get isCorreccion => !isPendiente && !isEnReparacion;
+
+  bool get selectedIsMerma => selectedStatus.toLowerCase().trim() == 'merma';
 
   @override
   void initState() {
@@ -98,6 +125,11 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
   Future<void> guardarCambio() async {
     if (isSaving) return;
 
+    final estadoAnterior = widget.notebook.estado;
+    final nuevoEstadoNormalizado = selectedStatus.toLowerCase().trim();
+    final acciones = accionesController.text.trim();
+    final observaciones = observacionesController.text.trim();
+
     if (isPendiente && diagnosticoController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Debes ingresar un diagnóstico inicial')),
@@ -105,14 +137,35 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
       return;
     }
 
-    if (isEnReparacion && accionesController.text.trim().isEmpty) {
+    if (isEnReparacion && acciones.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Debes ingresar las acciones realizadas')),
       );
       return;
     }
 
-    if (isCorreccion && observacionesController.text.trim().isEmpty) {
+    if (isEnReparacion &&
+        nuevoEstadoNormalizado == 'merma' &&
+        observaciones.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Debes ingresar una justificación técnica para enviar el equipo a Merma',
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (isEnReparacion && nuevoEstadoNormalizado == 'merma') {
+      final confirmar = await _confirmarMerma();
+
+      if (!confirmar) {
+        return;
+      }
+    }
+
+    if (isCorreccion && observaciones.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -122,8 +175,6 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
       );
       return;
     }
-
-    final estadoAnterior = widget.notebook.estado;
 
     if (estadoAnterior == selectedStatus) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -161,14 +212,14 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
         usuarioResponsable: CurrentUser.user?.correo ?? 'Técnico',
         fecha: DateTime.now(),
         diagnostico: diagnosticoController.text.trim(),
-        accionesRealizadas: accionesController.text.trim(),
+        accionesRealizadas: acciones,
         observacion: isPendiente
             ? 'Diagnóstico inicial registrado'
             : isCorreccion
-            ? 'Corrección de estado: ${observacionesController.text.trim()}'
-            : observacionesController.text.trim().isEmpty
+            ? 'Corrección de estado: $observaciones'
+            : observaciones.isEmpty
             ? 'Cambio de estado realizado por técnico'
-            : observacionesController.text.trim(),
+            : observaciones,
       );
 
       await historyRepository.addHistory(history);
@@ -251,14 +302,18 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
 
                         buildFixedTextArea(
                           controller: observacionesController,
-                          label: 'Observaciones técnicas',
-                          hint: 'Ej: Equipo queda funcionando correctamente',
+                          label: selectedIsMerma
+                              ? 'Justificación técnica de Merma'
+                              : 'Observaciones técnicas',
+                          hint: selectedIsMerma
+                              ? 'Explique detalladamente por qué el equipo es irrecuperable'
+                              : 'Ej: Equipo queda funcionando correctamente',
                         ),
 
                         const SizedBox(height: 16),
 
                         DropdownButtonFormField<String>(
-                          initialValue: selectedStatus,
+                          value: selectedStatus,
                           decoration: const InputDecoration(
                             labelText: 'Nuevo estado',
                             border: OutlineInputBorder(),
@@ -280,8 +335,10 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                           onChanged: isSaving
                               ? null
                               : (value) {
+                                  if (value == null) return;
+
                                   setState(() {
-                                    selectedStatus = value!;
+                                    selectedStatus = value;
                                   });
                                 },
                         ),
@@ -290,15 +347,18 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                       if (isCorreccion) ...[
                         buildFixedTextArea(
                           controller: observacionesController,
-                          label: 'Motivo de corrección',
-                          hint:
-                              'Ej: Estado asignado por error, se corrige manualmente',
+                          label: selectedIsMerma
+                              ? 'Justificación técnica de Merma'
+                              : 'Motivo de corrección',
+                          hint: selectedIsMerma
+                              ? 'Explique detalladamente por qué el equipo es irrecuperable'
+                              : 'Ej: Estado asignado por error, se corrige manualmente',
                         ),
 
                         const SizedBox(height: 16),
 
                         DropdownButtonFormField<String>(
-                          initialValue: selectedStatus,
+                          value: selectedStatus,
                           decoration: const InputDecoration(
                             labelText: 'Nuevo estado',
                             border: OutlineInputBorder(),
@@ -324,8 +384,10 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                           onChanged: isSaving
                               ? null
                               : (value) {
+                                  if (value == null) return;
+
                                   setState(() {
-                                    selectedStatus = value!;
+                                    selectedStatus = value;
                                   });
                                 },
                         ),

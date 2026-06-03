@@ -11,7 +11,9 @@ import '../../../../shared/widgets/search/campo_busqueda.dart';
 import '../../../../shared/cards/estado_card.dart';
 
 import '../../../bodega/data/repositories/notebook_repository.dart';
+import '../../../bodega/data/repositories/status_history_repository.dart';
 import '../../../bodega/domain/notebook_model.dart';
+import '../../../bodega/domain/status_history_model.dart';
 
 import '../widgets/tecnico_notebook_card.dart';
 import '../widgets/tecnico_botton_navigation.dart';
@@ -25,6 +27,7 @@ class TecnicoMermaScreen extends StatefulWidget {
 
 class _TecnicoMermaScreenState extends State<TecnicoMermaScreen> {
   final NotebookRepository repository = NotebookRepository();
+  final StatusHistoryRepository historyRepository = StatusHistoryRepository();
 
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocusNode = FocusNode();
@@ -52,6 +55,21 @@ class _TecnicoMermaScreenState extends State<TecnicoMermaScreen> {
         .length;
   }
 
+  bool _esMermaTecnica(
+    NotebookModel notebook,
+    List<StatusHistoryModel> history,
+  ) {
+    final esMerma = NotebookUtils.normalizeText(notebook.estado) == 'merma';
+
+    if (!esMerma) return false;
+
+    return history.any(
+      (h) =>
+          h.codigoNotebook == notebook.codigo &&
+          NotebookUtils.normalizeText(h.estadoNuevo) == 'merma',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,12 +83,12 @@ class _TecnicoMermaScreenState extends State<TecnicoMermaScreen> {
 
       body: StreamBuilder<List<NotebookModel>>(
         stream: repository.getNotebooks(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+        builder: (context, notebookSnapshot) {
+          if (notebookSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
+          if (notebookSnapshot.hasError) {
             return const Center(
               child: Text(
                 'Error al cargar notebooks en merma',
@@ -79,123 +97,150 @@ class _TecnicoMermaScreenState extends State<TecnicoMermaScreen> {
             );
           }
 
-          final notebooks = snapshot.data ?? [];
+          final notebooks = notebookSnapshot.data ?? [];
 
-          final notebooksMerma = notebooks.where((notebook) {
-            return NotebookUtils.normalizeText(notebook.estado) == 'merma';
-          }).toList();
+          return StreamBuilder<List<StatusHistoryModel>>(
+            stream: historyRepository.getHistory(),
+            builder: (context, historySnapshot) {
+              if (historySnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          return Padding(
-            padding: const EdgeInsets.all(AppDimensions.screenPadding),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: AppDimensions.spacingXSmall),
+              if (historySnapshot.hasError) {
+                return const Center(
+                  child: Text(
+                    'Error al cargar historial técnico',
+                    style: AppTextStyles.subtitle,
+                  ),
+                );
+              }
 
-                const Text('Notebooks en merma', style: AppTextStyles.subtitle),
+              final history = historySnapshot.data ?? [];
 
-                const SizedBox(height: AppDimensions.sectionSpacing),
+              final notebooksMermaTecnica = notebooks.where((notebook) {
+                return _esMermaTecnica(notebook, history);
+              }).toList();
 
-                Row(
+              return Padding(
+                padding: const EdgeInsets.all(AppDimensions.screenPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: CampoBusqueda(
-                        controller: searchController,
-                        focusNode: searchFocusNode,
-                        hint: 'Buscar notebook por código o modelo...',
-                        onChanged: searchNotebook,
+                    const SizedBox(height: AppDimensions.spacingXSmall),
+
+                    const Text(
+                      'Notebooks en merma técnica',
+                      style: AppTextStyles.subtitle,
+                    ),
+
+                    const SizedBox(height: AppDimensions.sectionSpacing),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CampoBusqueda(
+                            controller: searchController,
+                            focusNode: searchFocusNode,
+                            hint: 'Buscar notebook por código o modelo...',
+                            onChanged: searchNotebook,
+                          ),
+                        ),
+
+                        const SizedBox(width: AppDimensions.spacingMedium),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppDimensions.sectionSpacing),
+
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: AppDimensions.statusCardWidth,
+                            child: EstadoCard(
+                              title: 'Pend.',
+                              count: getCountByStatus(
+                                notebooks,
+                                'Pendiente de revisión',
+                              ),
+                              color: AppColors.pendiente,
+                            ),
+                          ),
+
+                          const SizedBox(width: AppDimensions.spacingSmall),
+
+                          SizedBox(
+                            width: AppDimensions.statusCardWidth,
+                            child: EstadoCard(
+                              title: 'Repar.',
+                              count: getCountByStatus(
+                                notebooks,
+                                'En reparación',
+                              ),
+                              color: AppColors.reparacion,
+                            ),
+                          ),
+
+                          const SizedBox(width: AppDimensions.spacingSmall),
+
+                          SizedBox(
+                            width: AppDimensions.statusCardWidth,
+                            child: EstadoCard(
+                              title: 'Disp.',
+                              count: getCountByStatus(notebooks, 'Disponible'),
+                              color: AppColors.disponible,
+                            ),
+                          ),
+
+                          const SizedBox(width: AppDimensions.spacingSmall),
+
+                          SizedBox(
+                            width: AppDimensions.statusCardWidth,
+                            child: EstadoCard(
+                              title: 'Merma',
+                              count: notebooksMermaTecnica.length,
+                              color: AppColors.merma,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
-                    const SizedBox(width: AppDimensions.spacingMedium),
+                    const SizedBox(height: AppDimensions.sectionSpacing),
+
+                    Expanded(
+                      child: ValueListenableBuilder<String>(
+                        valueListenable: searchQuery,
+                        builder: (context, query, _) {
+                          final filteredNotebooks =
+                              NotebookUtils.searchNotebooks(
+                                notebooks: notebooksMermaTecnica,
+                                query: query,
+                              );
+
+                          return filteredNotebooks.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No hay notebooks en merma técnica',
+                                    style: AppTextStyles.subtitle,
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: filteredNotebooks.length,
+                                  itemBuilder: (context, index) {
+                                    return TecnicoNotebookCard(
+                                      notebook: filteredNotebooks[index],
+                                    );
+                                  },
+                                );
+                        },
+                      ),
+                    ),
                   ],
                 ),
-
-                const SizedBox(height: AppDimensions.sectionSpacing),
-
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: AppDimensions.statusCardWidth,
-                        child: EstadoCard(
-                          title: 'Pend.',
-                          count: getCountByStatus(
-                            notebooks,
-                            'Pendiente de revisión',
-                          ),
-                          color: AppColors.pendiente,
-                        ),
-                      ),
-
-                      const SizedBox(width: AppDimensions.spacingSmall),
-
-                      SizedBox(
-                        width: AppDimensions.statusCardWidth,
-                        child: EstadoCard(
-                          title: 'Repar.',
-                          count: getCountByStatus(notebooks, 'En reparación'),
-                          color: AppColors.reparacion,
-                        ),
-                      ),
-
-                      const SizedBox(width: AppDimensions.spacingSmall),
-
-                      SizedBox(
-                        width: AppDimensions.statusCardWidth,
-                        child: EstadoCard(
-                          title: 'Disp.',
-                          count: getCountByStatus(notebooks, 'Disponible'),
-                          color: AppColors.disponible,
-                        ),
-                      ),
-
-                      const SizedBox(width: AppDimensions.spacingSmall),
-
-                      SizedBox(
-                        width: AppDimensions.statusCardWidth,
-                        child: EstadoCard(
-                          title: 'Merma',
-                          count: getCountByStatus(notebooks, 'Merma'),
-                          color: AppColors.merma,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: AppDimensions.sectionSpacing),
-
-                Expanded(
-                  child: ValueListenableBuilder<String>(
-                    valueListenable: searchQuery,
-                    builder: (context, query, _) {
-                      final filteredNotebooks = NotebookUtils.searchNotebooks(
-                        notebooks: notebooksMerma,
-                        query: query,
-                      );
-
-                      return filteredNotebooks.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No hay notebooks en merma',
-                                style: AppTextStyles.subtitle,
-                              ),
-                            )
-                          : ListView.builder(
-                              itemCount: filteredNotebooks.length,
-                              itemBuilder: (context, index) {
-                                return TecnicoNotebookCard(
-                                  notebook: filteredNotebooks[index],
-                                );
-                              },
-                            );
-                    },
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           );
         },
       ),
