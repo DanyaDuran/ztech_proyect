@@ -27,8 +27,14 @@ class _InactivityLogoutWrapperState extends State<InactivityLogoutWrapper> {
   DateTime _lastActivity = DateTime.now();
   bool _wasLoggedIn = false;
 
-  static const Duration _inactiveDuration = Duration(minutes: 5);
-  // Luego cambiar a Duration(minutes: 10)
+  Duration get _inactiveDuration {
+    final rol = CurrentUser.user?.rol.toLowerCase().trim() ?? '';
+
+    if (rol == 'super_admin' || rol == 'admin') {
+      return const Duration(seconds: 60);
+    }
+    return const Duration(minutes: 20);
+  }
 
   @override
   void initState() {

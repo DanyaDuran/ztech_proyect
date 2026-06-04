@@ -32,13 +32,17 @@ class NotebookDetailScreen extends StatelessWidget {
                 ? 'Editar notebook'
                 : 'Solo se pueden editar notebooks pendientes de revisión',
             onPressed: puedeEditar
-                ? () {
-                    Navigator.push(
+                ? () async {
+                    final actualizado = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => NotebookFormScreen(notebook: notebook),
                       ),
                     );
+
+                    if (actualizado == true && context.mounted) {
+                      Navigator.pop(context);
+                    }
                   }
                 : null,
           ),

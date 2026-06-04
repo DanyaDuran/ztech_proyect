@@ -45,6 +45,18 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
   bool get esEdicion => widget.notebook != null;
 
+  List<String> get seriesProcesadorFiltradas {
+    if (familiaProcesador == 'Intel Core') {
+      return ['i3', 'i5', 'i7', 'i9'];
+    }
+
+    if (familiaProcesador == 'AMD Ryzen') {
+      return ['Ryzen 3', 'Ryzen 5', 'Ryzen 7', 'Ryzen 9'];
+    }
+
+    return [];
+  }
+
   final List<String> estadosDisponibles = ['Pendiente de revisión'];
 
   @override
@@ -153,7 +165,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
         ),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
 
@@ -330,16 +342,31 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
                 hint: 'Ej: Intel Core',
                 value: familiaProcesador,
                 items: NotebookOptions.familiasProcesador,
-                onChanged: (val) => setState(() => familiaProcesador = val),
+                onChanged: (val) {
+                  setState(() {
+                    familiaProcesador = val;
+                    serieProcesador = null;
+                  });
+                },
               ),
 
               CustomDropdownField(
                 label: 'Serie CPU',
                 icon: Icons.memory_outlined,
-                hint: 'Ej: i7',
+                hint: familiaProcesador == null
+                    ? 'Selecciona primero la familia'
+                    : 'Selecciona la serie',
                 value: serieProcesador,
-                items: NotebookOptions.seriesProcesador,
-                onChanged: (val) => setState(() => serieProcesador = val),
+                items: seriesProcesadorFiltradas,
+                onChanged: (val) {
+                  if (familiaProcesador == null) {
+                    return;
+                  }
+
+                  setState(() {
+                    serieProcesador = val;
+                  });
+                },
               ),
 
               CustomDropdownField(
