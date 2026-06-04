@@ -32,7 +32,7 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
   void dispose() {
     searchController.dispose();
     searchFocusNode.dispose();
-    searchController.dispose();
+    searchQuery.dispose();
     super.dispose();
   }
 
