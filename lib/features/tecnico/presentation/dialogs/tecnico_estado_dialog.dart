@@ -164,7 +164,7 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
         return;
       }
     }
-
+    if (!mounted) return;
     if (isCorreccion && observaciones.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -175,7 +175,7 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
       );
       return;
     }
-
+    if (!mounted) return;
     if (estadoAnterior == selectedStatus) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecciona un estado diferente')),
