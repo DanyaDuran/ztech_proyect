@@ -10,6 +10,7 @@ class VentaModel {
   final String formaPago;
   final String notas;
   final DateTime fechaVenta;
+  final String usuarioResponsable;
 
   VentaModel({
     required this.notebook,
@@ -19,6 +20,7 @@ class VentaModel {
     required this.formaPago,
     required this.notas,
     required this.fechaVenta,
+    required this.usuarioResponsable,
   });
 
   factory VentaModel.fromMap(Map<String, dynamic> map) {
@@ -33,6 +35,7 @@ class VentaModel {
       precio: map['precio'] ?? '',
       formaPago: map['formaPago'] ?? '',
       notas: map['notas'] ?? '',
+      usuarioResponsable: map['usuarioResponsable'] ?? '',
       fechaVenta: fecha is Timestamp
           ? fecha.toDate()
           : fecha is DateTime
@@ -51,6 +54,7 @@ class VentaModel {
       'formaPago': formaPago,
       'notas': notas,
       'fechaVenta': Timestamp.fromDate(fechaVenta),
+      'usuarioResponsable': usuarioResponsable,
     };
   }
 }

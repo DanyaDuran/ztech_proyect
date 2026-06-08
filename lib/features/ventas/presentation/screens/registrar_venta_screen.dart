@@ -9,6 +9,7 @@ import '../../../bodega/domain/notebook_model.dart';
 import '../../data/repositories/ventas_repository.dart';
 import '../../data/services/comprobante_salida_pdf_service.dart';
 import '../../domain/venta_model.dart';
+import 'package:ztech_flutter__app/core/session/current_user.dart';
 
 class RegistrarVentaScreen extends StatefulWidget {
   final NotebookModel notebook;
@@ -107,6 +108,7 @@ class _RegistrarVentaScreenState extends State<RegistrarVentaScreen> {
         formaPago: formaPago,
         notas: notasController.text.trim(),
         fechaVenta: DateTime.now(),
+        usuarioResponsable: CurrentUser.user?.correo ?? 'Usuario desconocido',
       );
 
       await ventaRepository.addVenta(venta);
