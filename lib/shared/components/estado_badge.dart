@@ -10,7 +10,7 @@ class EstadoBadge extends StatelessWidget {
   String getDisplayStatus(String status) {
     switch (status.toLowerCase()) {
       case 'pendiente de revisión':
-        return 'En revisión';
+        return 'P. revisión';
 
       case 'en reparación':
         return 'Reparación';

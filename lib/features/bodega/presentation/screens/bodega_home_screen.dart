@@ -206,7 +206,7 @@ class _BodegaHomeScreenState extends State<BodegaHomeScreen> {
                       SizedBox(
                         width: AppDimensions.statusCardWidth,
                         child: EstadoCard(
-                          title: 'Rev.',
+                          title: 'P. Rev.',
                           count: NotebookUtils.getCountByStatus(
                             notebooks: notebooks,
                             status: 'Pendiente de revisión',

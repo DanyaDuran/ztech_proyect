@@ -285,7 +285,7 @@ class _NotebookFormScreenState extends State<NotebookFormScreen> {
 
               TextFormField(
                 controller: codigoController,
-                readOnly: esEdicion,
+                readOnly: true,
                 validator: AppValidators.codigoNotebook,
                 decoration: customInputDecoration(
                   label: 'Código Interno',
