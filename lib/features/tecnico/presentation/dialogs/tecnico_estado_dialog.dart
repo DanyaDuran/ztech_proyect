@@ -176,9 +176,25 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
       return;
     }
     if (!mounted) return;
-    if (estadoAnterior == selectedStatus) {
+
+    if (estadoAnterior == selectedStatus && isCorreccion) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecciona un estado diferente')),
+      );
+      return;
+    }
+
+    if (estadoAnterior == selectedStatus &&
+        !isCorreccion &&
+        diagnosticoController.text.trim().isEmpty &&
+        acciones.isEmpty &&
+        observaciones.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Debes modificar el estado o ingresar información técnica',
+          ),
+        ),
       );
       return;
     }
@@ -313,7 +329,7 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                         const SizedBox(height: 16),
 
                         DropdownButtonFormField<String>(
-                          value: selectedStatus,
+                          initialValue: selectedStatus,
                           decoration: const InputDecoration(
                             labelText: 'Nuevo estado',
                             border: OutlineInputBorder(),
@@ -358,7 +374,7 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                         const SizedBox(height: 16),
 
                         DropdownButtonFormField<String>(
-                          value: selectedStatus,
+                          initialValue: selectedStatus,
                           decoration: const InputDecoration(
                             labelText: 'Nuevo estado',
                             border: OutlineInputBorder(),
