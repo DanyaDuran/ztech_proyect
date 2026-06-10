@@ -11,8 +11,20 @@ class DashboardStats extends StatelessWidget {
     return FutureBuilder(
       future: DashboardRepository.getStats(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text('Error al cargar las estadísticas'),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text('No hay datos disponibles'),
+          );
         }
 
         final stats = snapshot.data!;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:ztech_flutter__app/core/helpers/notebook_status_helper.dart';
 import 'package:ztech_flutter__app/core/theme/theme.dart';
 import 'package:ztech_flutter__app/shared/widgets/dashboard/widgets.dart';
@@ -41,23 +40,30 @@ class DashboardMiddleSection extends StatelessWidget {
     return FutureBuilder<List<DashboardStatItem>>(
       future: DashboardRepository.getStats(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const DashboardCard(
             child: Center(child: CircularProgressIndicator()),
           );
         }
 
-        final stats = snapshot.data!;
-        final total = stats.fold<int>(0, (sum, stat) => sum + stat.count);
-
-        double totalGrafico = total.toDouble();
-        if (totalGrafico == 0) {
-          totalGrafico = 1;
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const DashboardCard(
+            child: Center(child: Text('Datos de gráfico no disponibles')),
+          );
         }
 
-        final disponibles = stats[0].count;
-        final reparacion = stats[1].count;
-        final vendidos = stats[2].count;
+        final stats = snapshot.data!;
+        final total = stats.fold<int>(0, (sum, stat) => sum + stat.count);
+        double totalGrafico = total > 0 ? total.toDouble() : 1.0;
+
+        final disponibles = stats.isNotEmpty ? stats[0].count : 0;
+        final reparacion = stats.length > 1 ? stats[1].count : 0;
+        final vendidos = stats.length > 2 ? stats[2].count : 0;
+
+        final color1 = stats.isNotEmpty ? stats[0].iconColor : Colors.grey;
+        final color2 = stats.length > 1 ? stats[1].iconColor : Colors.grey;
+        final color3 = stats.length > 2 ? stats[2].iconColor : Colors.grey;
+        final color4 = stats.length > 3 ? stats[3].iconColor : Colors.grey;
 
         final stop1 = disponibles / totalGrafico;
         final stop2 = stop1 + (reparacion / totalGrafico);
@@ -71,9 +77,7 @@ class DashboardMiddleSection extends StatelessWidget {
                 'Notebooks por estado',
                 style: AppTextStyles.sectionTitle,
               ),
-
               const SizedBox(height: AppDimensions.sectionSpacing),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -83,26 +87,8 @@ class DashboardMiddleSection extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: SweepGradient(
-                        stops: [
-                          0.0,
-                          stop1,
-                          stop1,
-                          stop2,
-                          stop2,
-                          stop3,
-                          stop3,
-                          1.0,
-                        ],
-                        colors: [
-                          stats[0].iconColor,
-                          stats[0].iconColor,
-                          stats[1].iconColor,
-                          stats[1].iconColor,
-                          stats[2].iconColor,
-                          stats[2].iconColor,
-                          stats[3].iconColor,
-                          stats[3].iconColor,
-                        ],
+                        stops: [0.0, stop1, stop1, stop2, stop2, stop3, stop3, 1.0],
+                        colors: [color1, color1, color2, color2, color3, color3, color4, color4],
                       ),
                     ),
                     child: Center(
@@ -128,21 +114,16 @@ class DashboardMiddleSection extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 32),
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: stats.map((stat) {
                       return Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: AppDimensions.spacingMedium,
-                        ),
+                        padding: const EdgeInsets.only(bottom: AppDimensions.spacingMedium),
                         child: DashboardLegendItem(
                           color: stat.iconColor,
                           title: stat.title,
-                          subtitle:
-                              '${stat.count} (${NotebookStatusHelper.percentage(stat.count, total)}%)',
+                          subtitle: '${stat.count} (${NotebookStatusHelper.percentage(stat.count, total)}%)',
                         ),
                       );
                     }).toList(),
@@ -183,8 +164,8 @@ class DashboardMiddleSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: [
-                  const Expanded(
+                children: const [
+                  Expanded(
                     child: Text(
                       'Historial de cambios',
                       style: AppTextStyles.sectionTitle,
@@ -193,9 +174,7 @@ class DashboardMiddleSection extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: AppDimensions.inputSpacing),
-
               if (recentHistory.isEmpty)
                 const Text(
                   'No hay actividad reciente',
@@ -211,22 +190,15 @@ class DashboardMiddleSection extends StatelessWidget {
                     children: [
                       Text(
                         'Notebook ${historyItem.codigoNotebook}',
-                        style: AppTextStyles.body.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
                       ),
-
                       const SizedBox(height: 4),
-
                       Text(
                         '${historyItem.estadoAnterior} → ${historyItem.estadoNuevo}',
                         style: AppTextStyles.body,
                       ),
-
                       const SizedBox(height: 4),
-
-                      if (index != recentHistory.length - 1)
-                        const Divider(height: 24),
+                      if (index != recentHistory.length - 1) const Divider(height: 24),
                     ],
                   );
                 }),

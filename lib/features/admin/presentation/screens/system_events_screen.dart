@@ -48,7 +48,7 @@ class _SystemEventsScreenState extends State<SystemEventsScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: modules.length,
-                separatorBuilder: (_, __) =>
+                separatorBuilder: (_, _) =>
                     const SizedBox(width: AppDimensions.spacingSmall),
                 itemBuilder: (context, index) {
                   final module = modules[index];

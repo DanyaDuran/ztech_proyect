@@ -1,36 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../core/helpers/notebook_status_helper.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../bodega/data/repositories/notebook_repository.dart';
 import '../domain/models/dashboard_activity_item_model.dart';
 import '../domain/models/dashboard_stat_item.dart';
 
 class DashboardRepository {
-  static final NotebookRepository _notebookRepository = NotebookRepository();
-
   static Future<List<DashboardStatItem>> getStats() async {
-    final notebooks = await _notebookRepository.getNotebooksOnce();
+    final collection = FirebaseFirestore.instance.collection('notebooks');
 
-    final disponibles = NotebookStatusHelper.countByStatus(
-      notebooks,
-      NotebookStatusHelper.disponible,
-    );
+    final results = await Future.wait([
+      collection.where('estado', isEqualTo: NotebookStatusHelper.disponible).count().get(),
+      collection.where('estado', isEqualTo: NotebookStatusHelper.reparacion).count().get(),
+      collection.where('estado', isEqualTo: NotebookStatusHelper.vendido).count().get(),
+      collection.where('estado', isEqualTo: NotebookStatusHelper.merma).count().get(),
+    ]);
 
-    final reparacion = NotebookStatusHelper.countByStatus(
-      notebooks,
-      NotebookStatusHelper.reparacion,
-    );
-
-    final vendidos = NotebookStatusHelper.countByStatus(
-      notebooks,
-      NotebookStatusHelper.vendido,
-    );
-
-    final merma = NotebookStatusHelper.countByStatus(
-      notebooks,
-      NotebookStatusHelper.merma,
-    );
+    final disponibles = results[0].count ?? 0;
+    final reparacion = results[1].count ?? 0;
+    final vendidos = results[2].count ?? 0;
+    final merma = results[3].count ?? 0;
 
     return [
       DashboardStatItem(
@@ -62,7 +52,9 @@ class DashboardRepository {
       DashboardStatItem(
         title: 'Vendidos',
         count: vendidos,
-        icon: NotebookStatusHelper.getStatusIcon(NotebookStatusHelper.vendido),
+        icon: NotebookStatusHelper.getStatusIcon(
+          NotebookStatusHelper.vendido,
+        ),
         iconColor: NotebookStatusHelper.getStatusColor(
           NotebookStatusHelper.vendido,
         ),
@@ -73,7 +65,9 @@ class DashboardRepository {
       DashboardStatItem(
         title: 'Merma',
         count: merma,
-        icon: NotebookStatusHelper.getStatusIcon(NotebookStatusHelper.merma),
+        icon: NotebookStatusHelper.getStatusIcon(
+          NotebookStatusHelper.merma,
+        ),
         iconColor: NotebookStatusHelper.getStatusColor(
           NotebookStatusHelper.merma,
         ),
