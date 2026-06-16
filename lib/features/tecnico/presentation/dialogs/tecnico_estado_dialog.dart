@@ -381,20 +381,12 @@ class _TecnicoEstadoDialogState extends State<TecnicoEstadoDialog> {
                           ),
                           items: const [
                             DropdownMenuItem(
-                              value: 'Pendiente de revisión',
-                              child: Text('Pendiente de revisión'),
-                            ),
-                            DropdownMenuItem(
                               value: 'En reparación',
                               child: Text('En reparación'),
                             ),
                             DropdownMenuItem(
                               value: 'Disponible',
                               child: Text('Disponible'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'Merma',
-                              child: Text('Merma'),
                             ),
                           ],
                           onChanged: isSaving

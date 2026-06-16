@@ -246,6 +246,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
                   ),
 
                   const SizedBox(height: AppDimensions.inputSpacing),
+
                   if (!isEditing)
                     TextFormField(
                       controller: _passwordController,
@@ -254,7 +255,18 @@ class _UserFormScreenState extends State<UserFormScreen> {
                         labelText: 'Contraseña',
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
+
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'La contraseña es obligatoria';
+                        }
+                        if (value.trim().length < 6) {
+                          return 'La contraseña debe tener al menos 6 caracteres';
+                        }
+                        return null;
+                      },
                     ),
+
                   if (!isEditing)
                     const SizedBox(height: AppDimensions.inputSpacing),
                   DropdownButtonFormField<String>(

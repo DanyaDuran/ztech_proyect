@@ -169,7 +169,7 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
 
           final notebooks = snapshot.data ?? [];
 
-          return SingleChildScrollView(
+          return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +193,7 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
 
                 const SizedBox(height: 12),
 
-                _buildNotebookList(notebooks),
+                Expanded(child: _buildNotebookList(notebooks)),
 
                 const SizedBox(height: 16),
 
@@ -302,14 +302,11 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
         );
 
         if (filteredNotebooks.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Center(
-              child: Text(
-                activeFilter == 'Vendido'
-                    ? 'No hay notebooks vendidos'
-                    : 'No hay notebooks disponibles',
-              ),
+          return Center(
+            child: Text(
+              activeFilter == 'Vendido'
+                  ? 'No hay notebooks vendidos'
+                  : 'No hay notebooks disponibles',
             ),
           );
         }
@@ -318,8 +315,6 @@ class _VentasHomeScreenState extends State<VentasHomeScreen> {
           valueListenable: selectedNotebookCodigo,
           builder: (context, selectedCodigo, _) {
             return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
               itemCount: filteredNotebooks.length,
               itemBuilder: (context, index) {
                 final notebook = filteredNotebooks[index];
