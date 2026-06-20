@@ -90,14 +90,15 @@ class VentaNotebookCard extends StatelessWidget {
                   EstadoBadge(status: notebook.estado, color: statusColor),
                   const SizedBox(height: 8),
                   SizedBox(
-                    width: 107,
-                    height: 30,
+                    width: 122,
+                    height: 34,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isSelected
                             ? Colors.red.shade400
                             : AppColors.primary,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -105,9 +106,13 @@ class VentaNotebookCard extends StatelessWidget {
                       onPressed: notebook.estado == 'Disponible'
                           ? onToggleSelection
                           : null,
-                      child: Text(
-                        isSelected ? 'Quitar' : 'Seleccionar',
-                        style: const TextStyle(fontSize: 11),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          isSelected ? 'Quitar' : 'Seleccionar',
+                          maxLines: 1,
+                          style: const TextStyle(fontSize: 11),
+                        ),
                       ),
                     ),
                   ),

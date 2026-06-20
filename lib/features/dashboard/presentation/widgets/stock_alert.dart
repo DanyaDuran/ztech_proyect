@@ -54,10 +54,6 @@ class StockAlert extends StatelessWidget {
                   'Quedan $disponibles notebooks disponibles.',
                   style: AppTextStyles.body,
                 ),
-                OutlinedButton(
-                  onPressed: onShowMessage,
-                  child: const Text('Ver inventario'),
-                ),
               ],
             ),
           ),
