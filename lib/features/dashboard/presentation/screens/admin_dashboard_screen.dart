@@ -9,16 +9,6 @@ import 'package:ztech_flutter__app/features/reportes/presentation/screens/report
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
-  void _mostrarMensajeDesarrollo(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Funcionalidad en desarrollo (Próximo Sprint)'),
-        duration: Duration(seconds: 2),
-        backgroundColor: AppColors.secondary,
-      ),
-    );
-  }
-
   void _irAReportes(BuildContext context) {
     Navigator.push(
       context,
@@ -58,13 +48,11 @@ class AdminDashboardScreen extends StatelessWidget {
 
             const DashboardStats(),
 
-            StockAlert(onShowMessage: () => _mostrarMensajeDesarrollo(context)),
+            const StockAlert(),
 
             const SizedBox(height: AppDimensions.sectionSpacing),
 
-            DashboardMiddleSection(
-              onShowMessage: () => _mostrarMensajeDesarrollo(context),
-            ),
+            DashboardMiddleSection(onShowMessage: () {}),
 
             const SizedBox(height: AppDimensions.sectionSpacing),
 

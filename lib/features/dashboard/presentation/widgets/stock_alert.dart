@@ -6,9 +6,7 @@ import 'package:ztech_flutter__app/features/bodega/data/repositories/notebook_re
 import 'package:ztech_flutter__app/features/bodega/domain/notebook_model.dart';
 
 class StockAlert extends StatelessWidget {
-  final VoidCallback onShowMessage;
-
-  const StockAlert({super.key, required this.onShowMessage});
+  const StockAlert({super.key});
 
   @override
   Widget build(BuildContext context) {
