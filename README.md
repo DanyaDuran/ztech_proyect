@@ -26,7 +26,7 @@ ZTech es una aplicación móvil orientada a empresas que compran, reparan, reaco
 
 El sistema se encuentra dividido en módulos según el rol del usuario:
 
-* **Administrador / Super Administrador:** gestión de usuarios, dashboard, reportes y eventos del sistema.
+* **Administrador / Super Administrador:** gestión de usuarios (super-adminstrador)/ dashboard, reportes y eventos del sistema (administrador, que es un supervisor de las áreas de operación)
 * **Bodega:** registro y visualización de notebooks.
 * **Técnico:** revisión, reparación, cambio de estados e historial técnico.
 * **Ventas:** visualización de notebooks disponibles y registro de ventas.
@@ -201,13 +201,13 @@ lib/firebase_options.dart
 
 El archivo `google-services.json` se obtiene desde Firebase Console al registrar una aplicación Android.
 
-El archivo `firebase_options.dart` se genera mediante FlutterFire CLI o debe venir incluido en el código fuente entregado.
+El archivo `firebase_options.dart` se genera mediante FlutterFire CLI y viene incluido en codigo fuente,
 
 ---
 
 ### 7.4 Inicialización de Firebase
 
-La aplicación debe inicializar Firebase en `main.dart`, de forma similar a:
+La aplicación debe inicializar Firebase en `main.dart`, usando:
 
 ```dart
 await Firebase.initializeApp(
@@ -234,7 +234,7 @@ Campos principales:
 Roles permitidos:
 
 ```text
-super_admin
+
 admin
 bodega
 tecnico
@@ -328,7 +328,9 @@ Descripción:
 * Visual Studio Code
 * Git
 * Emulador Android
+* Dispositivo físico android
 * Acceso al proyecto Firebase
+
 
 ### Requisitos recomendados del equipo
 
@@ -353,12 +355,6 @@ Ingresar a la carpeta del proyecto:
 
 ```bash
 cd ztech_proyect
-```
-
-Si se trabajará específicamente sobre la rama `develop`:
-
-```bash
-git checkout develop
 ```
 
 ---
@@ -423,6 +419,8 @@ También se puede ejecutar desde Visual Studio Code:
 3. Seleccionar el emulador Android.
 4. Presionar `F5` o **Run > Start Debugging**.
 
+O en un dispositivo físico
+
 ---
 
 ## 12. Usuarios de Prueba
@@ -442,7 +440,7 @@ Ejemplo de usuarios de prueba para evaluación:
 | Ventas  | [ventas@ztech.cl](mailto:ventas@ztech.cl)  | pass123    |
 
 Antes de aplicar cualquiera de estos, se recomienda usar el siguiente correo:
-superadmin@ztech.cl - contraseña: Admin1234 Para poder crear usuarios desde la app con credenciales y roles, y después verificar en Firebase. 
+[superadmin@ztech.cl - contraseña: Admin1234] Para poder crear usuarios desde la app con credenciales y roles, y después verificar en Firebase. 
 
 Importante: estos usuarios ya estan creados previamente en Firebase Authentication y en la colección `users`.
 
@@ -556,8 +554,9 @@ Estructura:
 
 docs/
 ├── Manual_Despliegue
-└── Manual_Tecnico_Backend.md
-└── Manual_Usuario.md
+└── Manual_tecnico_Backend
+└── Manual_Usuario
+└── Manual_tecnico
 
 ### Manual de Despliegue
 
@@ -566,6 +565,9 @@ Documento que explica paso a paso cómo instalar herramientas, configurar Fireba
 ### Manual Técnico Backend
 
 Documento que describe la configuración de Firebase, Authentication, Firestore, colecciones, flujo de datos, reglas generales y mantenimiento del backend.
+
+### Manual técnico de la app
+Documento que explica detalladamente la arquitectura, funcionamiento interno, estructura de desarrollo, tecnologías utilizadas y procedimientos de mantenimiento del sistema ZTech.
 
 ### Manual de Usuario
 Documento que describe la interacción completa con la app para cualquier usuario.
@@ -576,7 +578,6 @@ Documento que describe la interacción completa con la app para cualquier usuari
 * No utilizar contraseñas personales como usuarios de prueba.
 * No publicar credenciales privadas.
 * Los usuarios de prueba deben ser creados solo para evaluación académica.
-* Se recomienda revisar las reglas de Firestore antes de utilizar la aplicación en producción.
 * El archivo `google-services.json` permite conectar la app con Firebase, pero la seguridad real debe controlarse mediante reglas de Firestore y Authentication.
 
 ---
