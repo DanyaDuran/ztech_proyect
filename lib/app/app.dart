@@ -1,42 +1,71 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
-// 1. Importamos el archivo de nuestro nuevo botón
-import '../core/widgets/custom_action_button.dart';
 
-class ZTechApp extends StatelessWidget {
-  const ZTechApp({super.key});
+import 'router/routes.dart';
+
+import '../core/session/inactivity_logout_wrapper.dart';
+
+import '../features/auth/presentation/screens/login_screen.dart';
+import '../features/dashboard/presentation/screens/admin_dashboard_screen.dart';
+import '../features/bodega/presentation/screens/bodega_home_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_home_screen.dart';
+
+import '../features/admin/presentation/screens/user_management_screen.dart';
+import '../features/ventas/presentation/screens/ventas_home_screen.dart';
+import '../features/reportes/presentation/screens/reportes_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_reparacion_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_disponible_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_merma_screen.dart';
+import '../features/tecnico/presentation/screens/tecnico_historial_screen.dart';
+import '../features/admin/presentation/screens/system_events_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+class App extends StatelessWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ZTech Inventory',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      // 2. Quitamos la palabra "const" antes de Scaffold
-      home: Scaffold(
-        body: Center(
-          // 3. Usamos un Column para poner el texto y el botón uno debajo del otro
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'ZTech Inventory App',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20), // Espacio en blanco para separar
-              
-            
-              CustomActionButton(
-                text: 'Probar Botón',
-                icon: Icons.check_circle,
-                onPressed: () {
-                  debugPrint('¡El botón funciona correctamente!');
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'ZTech',
+
+      initialRoute: AppRoutes.login,
+
+      routes: {
+        AppRoutes.eventos: (context) => const SystemEventsScreen(),
+
+        AppRoutes.login: (context) => const LoginScreen(),
+
+        AppRoutes.dashboard: (context) => const AdminDashboardScreen(),
+
+        AppRoutes.bodega: (context) => const BodegaHomeScreen(),
+
+        AppRoutes.tecnico: (context) => const TecnicoHomeScreen(),
+
+        AppRoutes.tecnicoReparacion: (context) =>
+            const TecnicoReparacionScreen(),
+
+        AppRoutes.tecnicoDisponible: (context) =>
+            const TecnicoDisponiblesScreen(),
+
+        AppRoutes.tecnicoMerma: (context) => const TecnicoMermaScreen(),
+
+        AppRoutes.tecnicoHistorial: (context) => const TecnicoHistorialScreen(),
+
+        AppRoutes.admin: (context) => const UserManagementScreen(),
+
+        AppRoutes.ventas: (context) => const VentasHomeScreen(),
+
+        AppRoutes.reportes: (context) => const ReportesScreen(),
+      },
+
+      builder: (context, child) {
+        return InactivityLogoutWrapper(
+          navigatorKey: navigatorKey,
+          child: child ?? const SizedBox(),
+        );
+      },
     );
   }
 }
